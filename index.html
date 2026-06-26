@@ -147,7 +147,7 @@
   img.skth{height:56px;width:auto;max-width:120px;object-fit:cover;border:1px solid var(--line,#e3ddd2);border-radius:5px;cursor:zoom-in;display:block}
   .nosk{font-size:11px;color:var(--muted,#9a917f)}
   .sklb{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:60;cursor:zoom-out}
-  .sklb img{max-width:90vw;max-height:90vh;border:4px solid #fff;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .sklb img{width:auto;height:auto;max-width:94vw;max-height:94vh;min-width:min(86vw,760px);min-height:min(70vh,560px);object-fit:contain;border:4px solid #fff;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
   .sklb.hidden{display:none}
   /* ===== кнопка «Применить» на карточке листинга ===== */
   .lsubmit{font-size:11px;padding:4px 12px;border:1px solid var(--line2,#cfc7b6);background:#fff;border-radius:6px;cursor:pointer;color:#2f3a32}
@@ -316,9 +316,7 @@
           <option value="trim">Трим</option>
         </select>
       </label>
-      <input id="newfab" type="text" placeholder="новая ткань" style="width:150px"
-        onkeydown="if(event.key==='Enter')addFabric()">
-      <button onclick="addFabric()">+ Добавить ткань</button>
+      <input id="newfab" type="hidden">
       <button onclick="autoTagTrims()" title="грубо проставить трим по ключевым словам в заголовке (greek key, grosgrain, scallop, diamond)">Авто-трим по заголовкам</button>
       <button onclick="toggleAll(true)">Свернуть всё</button>
       <button onclick="toggleAll(false)">Развернуть всё</button>
