@@ -785,7 +785,7 @@ function trPic(i,input){
       try{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(im,0,0,w,h); data=cv.toDataURL('image/jpeg',0.82); }
       catch(_){ data=e.target.result; }
       TRIMS[i].sketch=data; try{SKIDX[(TRIMS[i].code||'').trim().toLowerCase()]=data;}catch(_){} autosave(); try{ if(typeof dirtyTrims!=='undefined'){ dirtyTrims.add(i); scheduleFlush(); } }catch(_){}
-      if(!LS_OK){ alert('Фото добавлено, но браузер не сохраняет прогресс между открытиями — обязательно нажмите «Сохранить прогресс» и держите файл.'); }
+      if(!LS_OK){ alert('Фото добавлено, но браузер не сохраняет прогресс между открытиями — обязательно нажмите «Сохранить прогресс» и держите файл.'); } if(typeof sb==='undefined'||!sb){ alert('Внимание: нет подключения к базе (похоже, открыт локальный файл). Фото НЕ уйдёт в базу — откройте инструмент на сайте и войдите, иначе оно останется только в этом браузере.'); }
       renderTrims();
     };
     im.onerror=()=>{ TRIMS[i].sketch=e.target.result; try{SKIDX[(TRIMS[i].code||'').trim().toLowerCase()]=e.target.result;}catch(_){} autosave(); try{ if(typeof dirtyTrims!=='undefined'){ dirtyTrims.add(i); scheduleFlush(); } }catch(_){} renderTrims(); };
@@ -1064,7 +1064,8 @@ function dbStatus(kind,msg){ var el=document.getElementById('saveStatus'); if(!e
 setSaveStatus=function(){};
 showLsWarn=function(){ var w=document.getElementById('lsWarn'); if(w)w.classList.add('hidden'); };
 autosave=function(){ scheduleFlush(); };
-function scheduleFlush(){ markUnsaved(); }
+var _autoflushTimer=null;
+function scheduleFlush(){ markUnsaved(); if(typeof sb!=='undefined'&&sb){ try{clearTimeout(_autoflushTimer);}catch(_){} _autoflushTimer=setTimeout(function(){ try{ flush(); }catch(_){} }, 800); } }
 function markUnsaved(){ _unsaved=true; var el=document.getElementById('saveStatus'); if(el){ el.textContent='● есть несохранённые изменения — нажмите «Записать в базу»'; el.className='savestatus warn'; } }
 function refreshRefMaps(){
   STYLE_ID={}; STYLE_NAME={}; STYLES.forEach(function(s){ if(s._id!=null){ STYLE_ID[s.name]=s._id; STYLE_NAME[s._id]=s.name; } });
@@ -1165,7 +1166,7 @@ showView=function(v){ ['styles','trims','price','list','history'].forEach(functi
   if(v==='trims')renderTrims(); if(v==='price')rebuildPricing(); if(v==='list')renderListings(); if(v==='history')loadHistory(); };
 
 /* ---- запись в базу + точка отката ---- */
-async function dbCommit(){ if(!sb){ return; } await flush(); var li=document.getElementById('snapLabel'); var label=(li&&li.value.trim())||('Запись '+new Date().toLocaleString('ru-RU')); dbStatus('saving');
+async function dbCommit(){ if(!sb){ return; } try{ for(var _si=0;_si<STYLES.length;_si++)dirtyStyles.add(_si); }catch(_){} try{ for(var _ti=0;_ti<TRIMS.length;_ti++)dirtyTrims.add(_ti); }catch(_){} await flush(); var li=document.getElementById('snapLabel'); var label=(li&&li.value.trim())||('Запись '+new Date().toLocaleString('ru-RU')); dbStatus('saving');
   var r=await sb.rpc('take_snapshot',{p_label:label,p_actor:actorName()}); if(r.error){ dbStatus('warn',r.error.message); } else { _unsaved=false; dbStatus('ok','✓ записано + точка отката'); if(li)li.value=''; loadHistory(); } }
 async function dbRestore(id){ if(!sb)return; if(!confirm('Откатить ВСЁ состояние к точке #'+id+'? Текущие данные заменятся (откат тоже попадёт в журнал).'))return; dbStatus('saving');
   var r=await sb.rpc('restore_snapshot',{p_id:id}); if(r.error){ dbStatus('warn',r.error.message); return; } await bootFromDB(); loadHistory(); dbStatus('ok','✓ откат выполнен'); }
