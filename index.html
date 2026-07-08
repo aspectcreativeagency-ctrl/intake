@@ -1343,10 +1343,10 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
     img.onload=function(){ var maxW=520, maxH=430; var sc=Math.min(1,maxW/img.naturalWidth,maxH/img.naturalHeight); cv.width=Math.round(img.naturalWidth*sc); cv.height=Math.round(img.naturalHeight*sc); ctx.drawImage(img,0,0,cv.width,cv.height); SW._img=img; SW._scale=sc; };
     img.onerror=function(){ document.getElementById('swCutMsg').textContent='Не удалось загрузить палету (CORS/URL).'; };
     img.src=proxied(p.url)+'&cors='+Date.now();
-    var dragging=false, sx=0, sy=0;
-    cv.onmousedown=function(e){ var r=cv.getBoundingClientRect(); sx=e.clientX-r.left; sy=e.clientY-r.top; dragging=true; box.style.display='block'; box.style.left=sx+'px'; box.style.top=sy+'px'; box.style.width='0px'; box.style.height='0px'; };
-    cv.onmousemove=function(e){ if(!dragging)return; var r=cv.getBoundingClientRect(); var x=e.clientX-r.left,y=e.clientY-r.top; var L=Math.min(sx,x),T=Math.min(sy,y),W=Math.abs(x-sx),H=Math.abs(y-sy); box.style.left=L+'px'; box.style.top=T+'px'; box.style.width=W+'px'; box.style.height=H+'px'; SW.sel={L:L,T:T,W:W,H:H}; };
-    if(!SW._mu){ SW._mu=true; window.addEventListener('mouseup',function(){dragging=false;}); }
+    SW._drag=false; SW._sx=0; SW._sy=0; SW._moved=false; SW.sel=null; box.style.display='none';
+    cv.onmousedown=function(e){ e.preventDefault(); var r=cv.getBoundingClientRect(); SW._sx=e.clientX-r.left; SW._sy=e.clientY-r.top; SW._drag=true; SW._moved=false; };
+    cv.onmousemove=function(e){ if(!SW._drag)return; var r=cv.getBoundingClientRect(); var x=e.clientX-r.left,y=e.clientY-r.top; if(!SW._moved && Math.abs(x-SW._sx)<3 && Math.abs(y-SW._sy)<3) return; SW._moved=true; var L=Math.min(SW._sx,x),T=Math.min(SW._sy,y),W=Math.abs(x-SW._sx),H=Math.abs(y-SW._sy); box.style.display='block'; box.style.left=L+'px'; box.style.top=T+'px'; box.style.width=W+'px'; box.style.height=H+'px'; SW.sel={L:L,T:T,W:W,H:H}; };
+    if(!SW._mu){ SW._mu=true; window.addEventListener('mouseup',function(){ SW._drag=false; }); }
     document.getElementById('swCut').onclick=SW.cut;
   };
 
