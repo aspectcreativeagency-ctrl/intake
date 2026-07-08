@@ -1379,10 +1379,11 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
       var thumb = c.swatch_url ? '<img src="'+c.swatch_url+'" style="width:100%;height:90px;object-fit:cover;border-radius:6px">'
         : '<div style="height:90px;border-radius:6px;background:'+(c.status==='needs_photo'?'#F6EEDD':'#EFEBE3')+';display:flex;align-items:center;justify-content:center;color:#9A6A1E;font-size:12px;text-align:center">'+(c.status==='needs_photo'?'нужна пересъёмка':'кроп ожидается')+'</div>';
       var badge = c.swatch_url ? '<span style="color:#2E6B4F">✓ ok</span>' : (c.status==='needs_photo'?'<span style="color:#9A6A1E">нет фото</span>':'<span style="color:#3F5A8A">палета '+esc(c.palette_ref||'')+'</span>');
-      h+='<div style="border:1px solid #E7E2D8;border-radius:8px;padding:8px">'+thumb+'<div style="margin-top:6px;font-weight:600;font-size:13px">'+esc(c.color_name)+'</div><div class="sub" style="font-family:monospace">'+esc(fc)+' · '+esc(c.color_code)+'</div><div style="font-size:12px;margin-top:4px">'+badge+'</div></div>';
+      h+='<div style="border:1px solid #E7E2D8;border-radius:8px;padding:8px">'+thumb+'<div style="margin-top:6px;font-weight:600;font-size:13px">'+esc(c.color_name)+'</div><div class="sub" style="font-family:monospace">'+esc(fc)+' · '+esc(c.color_code)+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;font-size:12px">'+badge+'<button data-del="'+esc(c.color_code)+'" title="Удалить цвет из базы" style="border:1px solid #e0c9c9;background:#fff;color:#a23;border-radius:6px;cursor:pointer;font-size:12px;padding:2px 7px">✕</button></div></div>';
     });
     h+='</div>';
     document.getElementById('swGrid').innerHTML=h;
+    document.getElementById('swGrid').querySelectorAll('[data-del]').forEach(function(bt){ bt.onclick=function(){ SW.del(bt.dataset.del); }; });
   };
 
   SW.autoPilot=async function(){
@@ -1423,6 +1424,15 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
     }
     msg.textContent='Готово: '+done+'/'+boxes.length;
     alert('Свотчи Tuscany: '+done+' ok, '+fail+' ошибок'+(errs.length?('\n\n'+errs.slice(0,6).join('\n')):''));
+    SW.loadFab();
+  };
+
+  SW.del=async function(code){
+    var c=(SW.colors||[]).find(function(x){return x.color_code===code;}); if(!c) return;
+    if(!confirm('Удалить цвет "'+c.color_name+'" ('+SW.fcode()+' · '+code+') из базы? Действие необратимо.')) return;
+    if(c.swatch_url){ try{ await sb.storage.from('swatches').remove([SW.fcode()+'-'+code+'.webp']); }catch(e){} }
+    var d=await sb.from('fabric_colors').delete().eq('fabric_id',SW.fab).eq('color_code',code);
+    if(d.error){ alert('Ошибка удаления: '+d.error.message); return; }
     SW.loadFab();
   };
 
