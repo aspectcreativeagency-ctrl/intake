@@ -1326,15 +1326,21 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
   SW.openCropper=function(p){
     SW.curPalette=p; SW.sel=null;
     var h='<div style="margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff">'+
-      '<b>Кроппер · '+esc(p.ref)+'</b> <span class="sub">выдели рамкой участок цвета -> выбери цвет -> «Вырезать и загрузить»</span>'+
-      '<div style="position:relative;display:inline-block;margin-top:8px"><canvas id="swCanvas" style="max-width:100%;border:1px solid #ccc;cursor:crosshair"></canvas><div id="swBox" style="position:absolute;border:2px dashed #2F3E36;background:rgba(47,62,54,.14);display:none;pointer-events:none"></div></div>'+
-      '<div style="margin-top:8px">Цвет: <select id="swAssign"></select> <button id="swCut" class="primary">Вырезать и загрузить</button> <span id="swCutMsg" class="sub"></span></div></div>';
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<b>Кроппер · '+esc(p.ref)+'</b>'+
+        '<span class="sub">выдели рамкой участок цвета →</span>'+
+        '<span>Цвет: <select id="swAssign"></select></span>'+
+        '<button id="swCut" class="primary">Вырезать и загрузить</button>'+
+        '<span id="swCutMsg" class="sub"></span>'+
+      '</div>'+
+      '<div style="position:relative;display:inline-block"><canvas id="swCanvas" style="max-width:100%;border:1px solid #ccc;cursor:crosshair"></canvas><div id="swBox" style="position:absolute;border:2px dashed #2F3E36;background:rgba(47,62,54,.14);display:none;pointer-events:none"></div></div>'+
+      '</div>';
     document.getElementById('swCropWrap').innerHTML=h;
     var sel=document.getElementById('swAssign');
     SW.colors.forEach(function(c){ var o=document.createElement('option'); o.value=c.color_code; o.textContent=c.color_name+(c.swatch_url?' ✓':''); sel.appendChild(o); });
     var cv=document.getElementById('swCanvas'), ctx=cv.getContext('2d'), box=document.getElementById('swBox');
     var img=new Image(); img.crossOrigin='anonymous';
-    img.onload=function(){ var maxW=560; var sc=Math.min(1,maxW/img.naturalWidth); cv.width=Math.round(img.naturalWidth*sc); cv.height=Math.round(img.naturalHeight*sc); ctx.drawImage(img,0,0,cv.width,cv.height); SW._img=img; SW._scale=sc; };
+    img.onload=function(){ var maxW=520, maxH=430; var sc=Math.min(1,maxW/img.naturalWidth,maxH/img.naturalHeight); cv.width=Math.round(img.naturalWidth*sc); cv.height=Math.round(img.naturalHeight*sc); ctx.drawImage(img,0,0,cv.width,cv.height); SW._img=img; SW._scale=sc; };
     img.onerror=function(){ document.getElementById('swCutMsg').textContent='Не удалось загрузить палету (CORS/URL).'; };
     img.src=proxied(p.url)+'&cors='+Date.now();
     var dragging=false, sx=0, sy=0;
