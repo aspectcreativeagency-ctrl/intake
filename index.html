@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow, noarchive, noimageindex">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aspect — Прайс-интейк: ткани × типы штор</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -201,6 +202,7 @@
     <button id="tab-trims" onclick="showView('trims')">Тримы</button>
     <button id="tab-price" onclick="showView('price')">Цены по тканям</button>
     <button id="tab-list" onclick="showView('list')">Листинги по тканям</button>
+    <button id="tab-swatches" onclick="showView('swatches')">Свотчи</button>
     <button id="tab-history" onclick="showView('history')">История / Откат</button>
     <div class="spacer"></div>
     <span class="count" id="navcount"></span>
@@ -331,6 +333,19 @@
   </section>
 
   <!-- ================= HISTORY / ОТКАТ ================= -->
+  <!-- ==== SWATCHES ==== -->
+  <section id="view-swatches" class="hidden">
+    <h1>Свотчи</h1>
+    <p class="sub">Библиотека свотчей: ткань × цвет. Источник — палеты из листингов; нарезаем кроппером и грузим в Storage-бакет <code>swatches</code>. Цвета без фото помечены на пересъёмку.</p>
+    <div class="row" style="margin:10px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <label>Ткань: <select id="swFab"></select></label>
+      <span id="swCov" class="sub"></span>
+    </div>
+    <div id="swPaletteWrap"></div>
+    <div id="swCropWrap"></div>
+    <div id="swGrid"></div>
+  </section>
+
   <section id="view-history" class="hidden">
     <h1>История / Откат</h1>
     <p class="sub">Все правки пишутся в базу автоматически. Кнопка <b>«Записать в базу»</b> дополнительно ставит <b>точку отката</b>, к которой можно вернуться в один клик. Журнал ведётся автоматически.</p>
@@ -1238,6 +1253,174 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
   import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
     .then(function(m){ start(m.createClient); })
     .catch(function(e){ console.error('supabase import error',e); var msg=document.getElementById('dbLoginMsg'); if(msg)msg.textContent='Не удалось загрузить Supabase (нужен интернет).'; showLogin(); });
+})();
+</script>
+<script>
+/* ===== SWATCHES TAB (fabric_colors + Storage bucket 'swatches') ===== */
+(function(){
+  function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function proxied(u){ return (window.SBURL||'https://xtrxsewrzprqrsaxmaxd.supabase.co')+'/functions/v1/img-proxy?url='+encodeURIComponent(u); }
+  if(typeof showView==='function'){
+    var _sv=showView;
+    window.showView=function(v){
+      _sv(v);
+      var s=document.getElementById('view-swatches'); if(s)s.classList.toggle('hidden',v!=='swatches');
+      var t=document.getElementById('tab-swatches'); if(t)t.className=(v==='swatches'?'primary':'');
+      if(v==='swatches') SW.render();
+    };
+  }
+  var PALKEY='aspect_swatch_palettes';
+  var SEED={ "4":[
+    {ref:"P1",url:"https://i.etsystatic.com/9277359/r/il/9bdd52/6206286252/il_fullxfull.6206286252_in7w.jpg"},
+    {ref:"P2",url:"https://i.etsystatic.com/9277359/r/il/498eb3/6254315577/il_fullxfull.6254315577_qyaa.jpg"}
+  ]};
+  function loadPal(){ var p={}; try{p=JSON.parse(localStorage.getItem(PALKEY)||'{}');}catch(e){p={};}
+    Object.keys(SEED).forEach(function(k){ if(!p[k]) p[k]=SEED[k]; }); return p; }
+  function savePal(p){ try{localStorage.setItem(PALKEY,JSON.stringify(p));}catch(e){} }
+
+  var SW={ fab:null, fabs:[], colors:[], sel:null, curPalette:null, _img:null, _scale:1 };
+
+  SW.render=async function(){
+    var grid=document.getElementById('swGrid');
+    if(!window.sb){ grid.innerHTML='<p class="sub">Сначала войди в базу (вкладка входа).</p>'; return; }
+    if(!SW.fabs.length){
+      var r=await sb.from('fabrics').select('id,name,code,is_discontinued,is_deleted').order('name');
+      if(r.error){ grid.innerHTML='<p class="sub">Ошибка тканей: '+esc(r.error.message)+'</p>'; return; }
+      SW.fabs=(r.data||[]).filter(function(f){return !f.is_deleted;});
+      var sel=document.getElementById('swFab'); sel.innerHTML='';
+      SW.fabs.forEach(function(f){ var o=document.createElement('option'); o.value=f.id; o.textContent=f.name+(f.is_discontinued?' (снята)':''); sel.appendChild(o); });
+      sel.onchange=function(){ SW.fab=+sel.value; SW.loadFab(); };
+      SW.fab = SW.fabs.some(function(f){return f.id===4;})?4:(SW.fabs[0]&&SW.fabs[0].id);
+      sel.value=SW.fab;
+    }
+    SW.loadFab();
+  };
+
+  SW.fcode=function(){ var f=SW.fabs.find(function(x){return x.id===SW.fab;}); return (f&&f.code)||('F'+SW.fab); };
+
+  SW.loadFab=async function(){
+    if(!SW.fab) return;
+    var r=await sb.from('fabric_colors').select('*').eq('fabric_id',SW.fab).order('sort_order');
+    if(r.error){ document.getElementById('swGrid').innerHTML='<p class="sub">Ошибка цветов: '+esc(r.error.message)+'</p>'; return; }
+    SW.colors=(r.data||[]);
+    SW.renderPalettes(); SW.renderGrid(); SW.renderCoverage();
+    document.getElementById('swCropWrap').innerHTML='';
+  };
+
+  SW.renderCoverage=function(){
+    var n=SW.colors.length, ok=SW.colors.filter(function(c){return c.swatch_url;}).length, miss=SW.colors.filter(function(c){return c.status==='needs_photo';}).length;
+    document.getElementById('swCov').textContent = n? (ok+'/'+n+' свотчей · '+Math.round(ok/n*100)+'% · '+miss+' без фото') : 'нет цветов — добавь через листинг';
+  };
+
+  SW.renderPalettes=function(){
+    var pal=loadPal()[String(SW.fab)]||[];
+    var h='<div style="margin:6px 0"><b>Палеты</b> <span class="sub">клик по палете — открыть кроппер</span></div><div style="display:flex;gap:10px;flex-wrap:wrap">';
+    pal.forEach(function(p,i){ h+='<div style="text-align:center"><img src="'+p.url+'" style="width:110px;height:110px;object-fit:cover;border:1px solid #ccc;border-radius:8px;cursor:pointer" data-pi="'+i+'"><div class="sub">'+esc(p.ref)+'</div></div>'; });
+    h+='</div><div style="margin-top:8px"><input id="swAddPal" placeholder="URL палеты (фото с образцами цветов)…" style="width:55%"> <button id="swAddPalBtn">+ палета</button></div>';
+    var w=document.getElementById('swPaletteWrap'); w.innerHTML=h;
+    w.querySelectorAll('[data-pi]').forEach(function(im){ im.onclick=function(){ SW.openCropper(pal[+im.dataset.pi]); }; });
+    if(SW.fab===4){ var ab=document.createElement('button'); ab.textContent='✂︎ Авто-нарезка пилота (Tuscany)'; ab.style.marginLeft='8px'; ab.onclick=SW.autoPilot; w.appendChild(ab); }
+    document.getElementById('swAddPalBtn').onclick=function(){ var u=document.getElementById('swAddPal').value.trim(); if(!u)return; var all=loadPal(); var arr=(all[String(SW.fab)]=all[String(SW.fab)]||[]); arr.push({ref:'P'+(arr.length+1),url:u}); savePal(all); SW.renderPalettes(); };
+  };
+
+  SW.openCropper=function(p){
+    SW.curPalette=p; SW.sel=null;
+    var h='<div style="margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff">'+
+      '<b>Кроппер · '+esc(p.ref)+'</b> <span class="sub">выдели рамкой участок цвета -> выбери цвет -> «Вырезать и загрузить»</span>'+
+      '<div style="position:relative;display:inline-block;margin-top:8px"><canvas id="swCanvas" style="max-width:100%;border:1px solid #ccc;cursor:crosshair"></canvas><div id="swBox" style="position:absolute;border:2px dashed #2F3E36;background:rgba(47,62,54,.14);display:none;pointer-events:none"></div></div>'+
+      '<div style="margin-top:8px">Цвет: <select id="swAssign"></select> <button id="swCut" class="primary">Вырезать и загрузить</button> <span id="swCutMsg" class="sub"></span></div></div>';
+    document.getElementById('swCropWrap').innerHTML=h;
+    var sel=document.getElementById('swAssign');
+    SW.colors.forEach(function(c){ var o=document.createElement('option'); o.value=c.color_code; o.textContent=c.color_name+(c.swatch_url?' ✓':''); sel.appendChild(o); });
+    var cv=document.getElementById('swCanvas'), ctx=cv.getContext('2d'), box=document.getElementById('swBox');
+    var img=new Image(); img.crossOrigin='anonymous';
+    img.onload=function(){ var maxW=560; var sc=Math.min(1,maxW/img.naturalWidth); cv.width=Math.round(img.naturalWidth*sc); cv.height=Math.round(img.naturalHeight*sc); ctx.drawImage(img,0,0,cv.width,cv.height); SW._img=img; SW._scale=sc; };
+    img.onerror=function(){ document.getElementById('swCutMsg').textContent='Не удалось загрузить палету (CORS/URL).'; };
+    img.src=proxied(p.url)+'&cors='+Date.now();
+    var dragging=false, sx=0, sy=0;
+    cv.onmousedown=function(e){ var r=cv.getBoundingClientRect(); sx=e.clientX-r.left; sy=e.clientY-r.top; dragging=true; box.style.display='block'; box.style.left=sx+'px'; box.style.top=sy+'px'; box.style.width='0px'; box.style.height='0px'; };
+    cv.onmousemove=function(e){ if(!dragging)return; var r=cv.getBoundingClientRect(); var x=e.clientX-r.left,y=e.clientY-r.top; var L=Math.min(sx,x),T=Math.min(sy,y),W=Math.abs(x-sx),H=Math.abs(y-sy); box.style.left=L+'px'; box.style.top=T+'px'; box.style.width=W+'px'; box.style.height=H+'px'; SW.sel={L:L,T:T,W:W,H:H}; };
+    if(!SW._mu){ SW._mu=true; window.addEventListener('mouseup',function(){dragging=false;}); }
+    document.getElementById('swCut').onclick=SW.cut;
+  };
+
+  SW.cut=async function(){
+    var msg=document.getElementById('swCutMsg');
+    if(!SW.sel||SW.sel.W<8||SW.sel.H<8){ msg.textContent='Сначала выдели область на палете.'; return; }
+    if(!SW._img){ msg.textContent='Палета ещё не загрузилась.'; return; }
+    var code=document.getElementById('swAssign').value, sc=SW._scale, img=SW._img;
+    var sxN=SW.sel.L/sc, syN=SW.sel.T/sc, sWN=SW.sel.W/sc, sHN=SW.sel.H/sc;
+    var scale=Math.min(1,1000/Math.max(sWN,sHN));
+    var out=document.createElement('canvas'); out.width=Math.max(1,Math.round(sWN*scale)); out.height=Math.max(1,Math.round(sHN*scale));
+    out.getContext('2d').drawImage(img, sxN,syN,sWN,sHN, 0,0,out.width,out.height);
+    msg.textContent='Загружаю…';
+    var blob=await new Promise(function(res){ out.toBlob(res,'image/webp',0.85); });
+    if(!blob){ msg.textContent='Не удалось создать изображение.'; return; }
+    var path=SW.fcode()+'-'+code+'.webp';
+    var up=await sb.storage.from('swatches').upload(path, blob, {upsert:true, contentType:'image/webp'});
+    if(up.error){ msg.textContent='Ошибка Storage: '+esc(up.error.message); return; }
+    var url=sb.storage.from('swatches').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+    var upd=await sb.from('fabric_colors').update({swatch_url:url,status:'ok',palette_ref:SW.curPalette.ref,updated_at:new Date().toISOString()}).eq('fabric_id',SW.fab).eq('color_code',code);
+    if(upd.error){ msg.textContent='Ошибка БД: '+esc(upd.error.message); return; }
+    msg.textContent='✓ '+code+' сохранён';
+    SW.loadFab();
+  };
+
+  SW.renderGrid=function(){
+    var fc=SW.fcode();
+    var h='<div style="margin:14px 0 6px"><b>Цвета ткани</b></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">';
+    SW.colors.forEach(function(c){
+      var thumb = c.swatch_url ? '<img src="'+c.swatch_url+'" style="width:100%;height:90px;object-fit:cover;border-radius:6px">'
+        : '<div style="height:90px;border-radius:6px;background:'+(c.status==='needs_photo'?'#F6EEDD':'#EFEBE3')+';display:flex;align-items:center;justify-content:center;color:#9A6A1E;font-size:12px;text-align:center">'+(c.status==='needs_photo'?'нужна пересъёмка':'кроп ожидается')+'</div>';
+      var badge = c.swatch_url ? '<span style="color:#2E6B4F">✓ ok</span>' : (c.status==='needs_photo'?'<span style="color:#9A6A1E">нет фото</span>':'<span style="color:#3F5A8A">палета '+esc(c.palette_ref||'')+'</span>');
+      h+='<div style="border:1px solid #E7E2D8;border-radius:8px;padding:8px">'+thumb+'<div style="margin-top:6px;font-weight:600;font-size:13px">'+esc(c.color_name)+'</div><div class="sub" style="font-family:monospace">'+esc(fc)+' · '+esc(c.color_code)+'</div><div style="font-size:12px;margin-top:4px">'+badge+'</div></div>';
+    });
+    h+='</div>';
+    document.getElementById('swGrid').innerHTML=h;
+  };
+
+  SW.autoPilot=async function(){
+    var msg=document.getElementById('swCov');
+    var P1='https://i.etsystatic.com/9277359/r/il/9bdd52/6206286252/il_fullxfull.6206286252_in7w.jpg';
+    var P2='https://i.etsystatic.com/9277359/r/il/498eb3/6254315577/il_fullxfull.6254315577_qyaa.jpg';
+    var boxes=[
+      {code:'WHT',ref:'P2',url:P2,x:1200,y:250,w:600,h:190},
+      {code:'OYS',ref:'P2',url:P2,x:1200,y:750,w:600,h:190},
+      {code:'PRS',ref:'P2',url:P2,x:1200,y:1250,w:600,h:190},
+      {code:'CDG',ref:'P2',url:P2,x:1200,y:1750,w:600,h:190},
+      {code:'CHG',ref:'P2',url:P2,x:1200,y:2250,w:600,h:190},
+      {code:'BLK',ref:'P2',url:P2,x:1200,y:2750,w:600,h:190},
+      {code:'EGG',ref:'P1',url:P1,x:1200,y:930,w:600,h:150},
+      {code:'DUN',ref:'P1',url:P1,x:1200,y:1305,w:600,h:150},
+      {code:'LIN',ref:'P1',url:P1,x:1200,y:1680,w:600,h:150},
+      {code:'GLM',ref:'P1',url:P1,x:1200,y:2055,w:600,h:150},
+      {code:'NAT',ref:'P1',url:P1,x:1200,y:2430,w:600,h:150},
+      {code:'TGY',ref:'P1',url:P1,x:1200,y:2805,w:600,h:150}
+    ];
+    var cache={};
+    function loadImg(u){return new Promise(function(res,rej){ if(cache[u])return res(cache[u]); var im=new Image(); im.crossOrigin='anonymous'; im.onload=function(){cache[u]=im;res(im);}; im.onerror=function(){rej('img');}; im.src=proxied(u)+'&cb='+Date.now(); });}
+    var done=0,fail=0,errs=[];
+    for(var k=0;k<boxes.length;k++){ var b=boxes[k];
+      try{
+        var im=await loadImg(b.url);
+        var out=document.createElement('canvas'); out.width=800; out.height=Math.round(800*b.h/b.w);
+        out.getContext('2d').drawImage(im,b.x,b.y,b.w,b.h,0,0,out.width,out.height);
+        var blob=await new Promise(function(res){out.toBlob(res,'image/webp',0.85);});
+        var path='TSC-'+b.code+'.webp';
+        var up=await sb.storage.from('swatches').upload(path,blob,{upsert:true,contentType:'image/webp'});
+        if(up.error){fail++; errs.push(b.code+' storage: '+up.error.message); continue;}
+        var url=sb.storage.from('swatches').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+        var upd=await sb.from('fabric_colors').update({swatch_url:url,status:'ok',palette_ref:b.ref,updated_at:new Date().toISOString()}).eq('fabric_id',4).eq('color_code',b.code);
+        if(upd.error){fail++; errs.push(b.code+' db: '+upd.error.message); continue;}
+        done++; msg.textContent='Авто-нарезка… '+done+'/'+boxes.length;
+      }catch(e){ fail++; errs.push(b.code+': '+(e&&e.message||e)); try{console.error('swatch',b.code,e);}catch(_){} }
+    }
+    msg.textContent='Готово: '+done+'/'+boxes.length;
+    alert('Свотчи Tuscany: '+done+' ok, '+fail+' ошибок'+(errs.length?('\n\n'+errs.slice(0,6).join('\n')):''));
+    SW.loadFab();
+  };
+
+  window.SW=SW;
 })();
 </script>
 </body>
