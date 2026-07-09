@@ -1280,7 +1280,7 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
     Object.keys(SEED).forEach(function(k){ if(!p[k]) p[k]=SEED[k]; }); return p; }
   function savePal(p){ try{localStorage.setItem(PALKEY,JSON.stringify(p));}catch(e){} }
 
-  var SW={ fab:null, fabs:[], colors:[], sel:null, curPalette:null, _img:null, _scale:1 };
+  var SW={ fab:null, fabs:[], colors:[], pals:[], sel:null, curPalette:null, _img:null, _scale:1 };
 
   SW.render=async function(){
     var grid=document.getElementById('swGrid');
@@ -1320,6 +1320,8 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
     var r=await sb.from('fabric_colors').select('*').eq('fabric_id',SW.fab).order('sort_order');
     if(r.error){ document.getElementById('swGrid').innerHTML='<p class="sub">Ошибка цветов: '+esc(r.error.message)+'</p>'; return; }
     SW.colors=(r.data||[]);
+    var pr=await sb.from('fabric_palettes').select('*').eq('fabric_id',SW.fab).order('sort_order').order('id');
+    SW.pals=(pr.error?[]:(pr.data||[]));
     SW.renderPalettes(); SW.renderGrid(); SW.renderCoverage();
     document.getElementById('swCropWrap').innerHTML='';
   };
@@ -1330,14 +1332,14 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
   };
 
   SW.renderPalettes=function(){
-    var pal=loadPal()[String(SW.fab)]||[];
+    var pal=SW.pals||[];
     var h='<div style="margin:6px 0"><b>Палеты</b> <span class="sub">клик по палете — открыть кроппер</span></div><div style="display:flex;gap:10px;flex-wrap:wrap">';
     pal.forEach(function(p,i){ h+='<div style="text-align:center"><img src="'+p.url+'" style="width:110px;height:110px;object-fit:cover;border:1px solid #ccc;border-radius:8px;cursor:pointer" data-pi="'+i+'"><div class="sub">'+esc(p.ref)+'</div></div>'; });
     h+='</div><div style="margin-top:8px"><input id="swAddPal" placeholder="URL палеты (фото с образцами цветов)…" style="width:55%"> <button id="swAddPalBtn">+ палета</button></div>';
     var w=document.getElementById('swPaletteWrap'); w.innerHTML=h;
     w.querySelectorAll('[data-pi]').forEach(function(im){ im.onclick=function(){ SW.openCropper(pal[+im.dataset.pi]); }; });
     if(SW.fab===4){ var ab=document.createElement('button'); ab.textContent='✂︎ Авто-нарезка пилота (Tuscany)'; ab.style.marginLeft='8px'; ab.onclick=SW.autoPilot; w.appendChild(ab); }
-    document.getElementById('swAddPalBtn').onclick=function(){ var u=document.getElementById('swAddPal').value.trim(); if(!u)return; var all=loadPal(); var arr=(all[String(SW.fab)]=all[String(SW.fab)]||[]); arr.push({ref:'P'+(arr.length+1),url:u}); savePal(all); SW.renderPalettes(); };
+    document.getElementById('swAddPalBtn').onclick=async function(){ var u=document.getElementById('swAddPal').value.trim(); if(!u)return; var n=(SW.pals?SW.pals.length:0); var ins=await sb.from('fabric_palettes').insert({fabric_id:SW.fab,ref:'P'+(n+1),url:u,sort_order:n}); if(ins.error){ alert('Ошибка сохранения палеты: '+ins.error.message); return; } document.getElementById('swAddPal').value=''; SW.loadFab(); };
   };
 
   SW.openCropper=function(p){
