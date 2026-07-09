@@ -338,8 +338,10 @@
     <h1>Свотчи</h1>
     <p class="sub">Библиотека свотчей: ткань × цвет. Источник — палеты из листингов; нарезаем кроппером и грузим в Storage-бакет <code>swatches</code>. Цвета без фото помечены на пересъёмку.</p>
     <div class="row" style="margin:10px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-      <label>Ткань: <select id="swFab"></select></label>
+      <div style="width:100%"><b>Ткань</b> <span class="sub">клик по плашке — открыть ткань (число = сколько свотчей залито)</span></div>
+      <div id="swFabChips" style="display:flex;gap:8px;flex-wrap:wrap;width:100%"></div>
       <span id="swCov" class="sub"></span>
+      <select id="swFab" style="display:none"></select>
     </div>
     <div id="swPaletteWrap"></div>
     <div id="swCropWrap"></div>
@@ -1287,13 +1289,28 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
       var r=await sb.from('fabrics').select('id,name,code,is_discontinued,is_deleted').order('name');
       if(r.error){ grid.innerHTML='<p class="sub">Ошибка тканей: '+esc(r.error.message)+'</p>'; return; }
       SW.fabs=(r.data||[]).filter(function(f){return !f.is_deleted;});
-      var sel=document.getElementById('swFab'); sel.innerHTML='';
-      SW.fabs.forEach(function(f){ var o=document.createElement('option'); o.value=f.id; o.textContent=f.name+(f.is_discontinued?' (снята)':''); sel.appendChild(o); });
-      sel.onchange=function(){ SW.fab=+sel.value; SW.loadFab(); };
+      var cr=await sb.from('fabric_colors').select('fabric_id,swatch_url,status');
+      SW.counts={};
+      (cr.data||[]).forEach(function(c){ var o=SW.counts[c.fabric_id]||(SW.counts[c.fabric_id]={ok:0,miss:0,total:0}); o.total++; if(c.swatch_url)o.ok++; if(c.status==='needs_photo')o.miss++; });
+      SW.fabs.sort(function(a,b){ var oa=(SW.counts[a.id]||{}).ok||0, ob=(SW.counts[b.id]||{}).ok||0; return ob-oa || a.name.localeCompare(b.name); });
       SW.fab = SW.fabs.some(function(f){return f.id===4;})?4:(SW.fabs[0]&&SW.fabs[0].id);
-      sel.value=SW.fab;
+      SW.renderChips();
     }
     SW.loadFab();
+  };
+
+  SW.renderChips=function(){
+    var box=document.getElementById('swFabChips'); if(!box) return; box.innerHTML='';
+    SW.fabs.forEach(function(f){
+      var c=(SW.counts&&SW.counts[f.id])||{ok:0,miss:0,total:0}, active=(f.id===SW.fab);
+      var chip=document.createElement('button'); chip.type='button';
+      chip.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid '+(active?'#2F3E36':'#ccc')+';background:'+(active?'#2F3E36':(c.ok?'#fff':'#f3f2ee'))+';color:'+(active?'#fff':(c.ok?'#222':'#9a988f'))+';cursor:pointer;font-size:13px;line-height:1';
+      var badge='<span style="min-width:16px;text-align:center;padding:1px 6px;border-radius:999px;background:'+(active?'rgba(255,255,255,.25)':'#ececec')+';color:'+(active?'#fff':'#555')+';font-size:12px">'+c.ok+'</span>';
+      var miss=c.miss?(' <span title="без фото" style="font-size:11px;color:'+(active?'#ffe9a8':'#c08a00')+'">'+c.miss+'◦</span>'):'';
+      chip.innerHTML='<span>'+esc(f.name)+(f.is_discontinued?' (снята)':'')+'</span>'+badge+miss;
+      chip.onclick=function(){ SW.fab=f.id; SW.renderChips(); SW.loadFab(); };
+      box.appendChild(chip);
+    });
   };
 
   SW.fcode=function(){ var f=SW.fabs.find(function(x){return x.id===SW.fab;}); return (f&&f.code)||('F'+SW.fab); };
