@@ -173,6 +173,16 @@
   .lctitle a{flex:1}
   img.hero{width:64px;height:64px;flex:0 0 auto;object-fit:cover;border:1px solid var(--line2,#cfc7b6);border-radius:6px;cursor:zoom-in;background:#f3efe8}
   .hero.ph{width:64px;height:64px;flex:0 0 auto;border:1px dashed var(--line,#e3ddd2);border-radius:6px;display:inline-block;background:#faf8f4}
+#view-price th.base, #view-price td.base{display:none}
+.srcb{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;vertical-align:middle}
+.srcb.manual{background:#e6f4ea;color:#137333}
+.srcb.costmaster{background:#e8f0fe;color:#1a56c4}
+.srcb.estimated{background:#fdf0d5;color:#a05a00}
+.srcb.none{background:#f1f3f4;color:#888}
+#fabTable td.note{max-width:340px;font-size:11px;color:var(--muted);line-height:1.3}
+#fabTable td,#fabTable th{padding:6px 8px}
+#gridWrap table{margin-bottom:8px;border-collapse:collapse}
+#gridWrap td,#gridWrap th{border:1px solid var(--line);padding:3px 8px}
 </style>
 </head>
 <body>
@@ -200,7 +210,9 @@
   <div class="nav">
     <button id="tab-styles" class="primary" onclick="showView('styles')">Стили</button>
     <button id="tab-trims" onclick="showView('trims')">Тримы</button>
-    <button id="tab-price" onclick="showView('price')">Цены по тканям</button>
+    <button id="tab-fabrics" onclick="showView('fabrics')">Ткани</button>
+    <button id="tab-price" onclick="showView('price')">Ставки по стилям</button>
+    <button id="tab-grid" onclick="showView('grid')">Сетка Aspect</button>
     <button id="tab-list" onclick="showView('list')">Листинги по тканям</button>
     <button id="tab-swatches" onclick="showView('swatches')">Свотчи</button>
     <button id="tab-trimswatches" onclick="showView('trimswatches')">Trim Swatches</button>
@@ -273,12 +285,12 @@
 
   <!-- ================= PRICING ================= -->
   <section id="view-price" class="hidden">
-    <h1>Aspect &mdash; прайс-интейк по тканям</h1>
+    <h1>Ставки по стилям ($/час)</h1>
     <p class="sub">Римские шторы по типам складки &middot; строки = ткани, колонки = типы &middot; заполните пустые поля и пришлите файл назад.</p>
 
     <div class="note">
-      <b>Как заполнять:</b> для каждой ткани укажите <b>цену за ярд</b> и выберите <b>ширину рулона</b> (54&Prime; или 120&Prime;) &mdash; это вводится один раз на ткань.
-      В каждой колонке-типе укажите <b>ставку $/час</b> (по умолчанию 30) и, при необходимости, комментарий. <b>Цена трима</b> теперь задаётся отдельно на вкладке <b>«Тримы»</b> (трим зависит от дизайна каймы, а не от ткани).
+      <b>Как заполнять:</b> в каждой колонке-типе укажите <b>ставку $/час</b> (по умолчанию 30) и, при необходимости, комментарий.
+      <b>Цена за ярд, ширина рулона и код ткани</b> переехали на вкладку <b>«Ткани»</b>. <b>Цена трима</b> теперь задаётся отдельно на вкладке <b>«Тримы»</b> (трим зависит от дизайна каймы, а не от ткани).
       Когда закончите &mdash; нажмите <b>«Скачать всё в один файл»</b> вверху и пришлите файл назад. Всё (стили, тримы, цены, листинги) сохраняется автоматически и попадает в один Excel-файл.
     </div>
 
@@ -297,6 +309,38 @@
       <button class="savefoot" onclick="dbCommit()">💾 Записать в базу</button>
       <span class="count">Ставка по умолчанию $30/час, можно менять. Ширина рулона по умолчанию 54&Prime;.</span>
     </div>
+  </section>
+
+  <!-- ================= FABRICS ================= -->
+  <section id="view-fabrics" class="hidden">
+    <h1>Ткани &mdash; справочник и закупочные цены</h1>
+    <p class="sub">Цена за ярд (CAD), ширина рулона и код &mdash; по одной строке на ткань. Бейдж показывает источник цены:
+      <span class="srcb manual">вручную</span> проверенная закупка &middot; <span class="srcb costmaster">Cost Master</span> из эталона себестоимости &middot;
+      <span class="srcb estimated">оценка</span> черновик, выведенный из сеток Aspect (наведите на бейдж &mdash; объяснение) &middot; <span class="srcb none">нет цены</span>.
+      Правка цены превращает оценку в «вручную». Добавление/удаление тканей &mdash; на вкладке «Ставки по стилям».</p>
+    <div class="bar">
+      <input type="text" id="fabSearch" placeholder="поиск ткани…" style="max-width:220px" oninput="renderFabrics()">
+      <button class="savefoot" onclick="fabCommit()">💾 Записать в базу</button>
+      <span class="count" id="fabCount"></span>
+    </div>
+    <div class="wrap">
+      <table id="fabTable"><thead><tr>
+        <th class="rownum">#</th><th>Ткань</th><th>Код</th><th>Цена за ярд<span class="h2">CAD</span></th>
+        <th>Ширина<span class="h2">дюймы</span></th><th>Источник</th><th>Заметка</th><th>Обновлено</th>
+      </tr></thead><tbody id="fabBody"></tbody></table>
+    </div>
+  </section>
+
+  <!-- ================= ASPECT GRID ================= -->
+  <section id="view-grid" class="hidden">
+    <h1>Сетка Aspect &mdash; цены листингов по тканям</h1>
+    <p class="sub">Справочник (только чтение): 6449 ценовых точек Размер&times;Цена, распарсенных из 317 листингов Aspect.
+      <span class="srcb manual">SKU-матч</span> ткань взята из SKU вариации &middot; <span class="srcb estimated">по названию</span> ткань определена по названию листинга (менее надёжно).</p>
+    <div class="bar">
+      <select id="gridFab" onchange="loadGrid()" style="max-width:280px"></select>
+      <span class="count" id="gridCount"></span>
+    </div>
+    <div class="wrap" id="gridWrap"><p class="sub">Выберите ткань &mdash; покажу её ценовые точки.</p></div>
   </section>
 
   <!-- ================= LISTINGS ================= -->
@@ -1195,8 +1239,10 @@ autoTagTrims=function(){ var map=[["greek key","Rom 006"],["grosgrain","Rom 014"
   renderListings(); scheduleFlush(); alert('Проставлено тримов: '+n+' (грубая разметка по ключевым словам).'); };
 
 /* ---- 5-я вкладка История ---- */
-showView=function(v){ ['styles','trims','price','list','history'].forEach(function(k){ var sec=document.getElementById('view-'+k); if(sec)sec.classList.toggle('hidden', v!==k); var tb=document.getElementById('tab-'+k); if(tb)tb.className=(v===k?'primary':''); });
-  if(v==='trims')renderTrims(); if(v==='price')rebuildPricing(); if(v==='list')renderListings(); if(v==='history')loadHistory(); };
+showView=function(v){ ['styles','trims','fabrics','price','grid','list','history'].forEach(function(k){ var sec=document.getElementById('view-'+k); if(sec)sec.classList.toggle('hidden', v!==k); var tb=document.getElementById('tab-'+k); if(tb)tb.className=(v===k?'primary':''); });
+  if(v==='trims')renderTrims(); if(v==='price')rebuildPricing(); if(v==='list')renderListings(); if(v==='history')loadHistory();
+  if(v==='fabrics'&&typeof renderFabrics==='function')renderFabrics();
+  if(v==='grid'&&typeof fillGridFilters==='function'){ fillGridFilters(); } };
 
 /* ---- запись в базу + точка отката ---- */
 async function dbCommit(){ if(!sb){ return; } try{ for(var _si=0;_si<STYLES.length;_si++)dirtyStyles.add(_si); }catch(_){} try{ for(var _ti=0;_ti<TRIMS.length;_ti++)dirtyTrims.add(_ti); }catch(_){} await flush(); var li=document.getElementById('snapLabel'); var label=(li&&li.value.trim())||('Запись '+new Date().toLocaleString('ru-RU')); dbStatus('saving');
@@ -1230,14 +1276,90 @@ async function bootFromDB(){ if(!sb)return; dbStatus('', 'загрузка…');
     LISTINGS.push({id:String(l.id),t:l.title,type:(styleName||'— не указан'),fab:fabName});
     if(fabName)LASSIGN[l.id]=fabName; LSTYLE[l.id]=(styleName||'— не указан'); if(trimCode)LTRIM[l.id]=trimCode; if(l.note)LNOTE[l.id]=l.note; });
   FABMETA={}; fa.forEach(function(f){ var m={}; if(f.is_discontinued)m.disc=true; if(f.substitute_fabric_id&&FAB_NAME[f.substitute_fabric_id])m.sub=FAB_NAME[f.substitute_fabric_id]; if(Object.keys(m).length)FABMETA[f.name]=m; });
-  USERFABS=[]; DELFABS=[];
+  USERFABS=[]; DELFABS=[]; FABREC=fa;
   renderStyles(); renderTrims(); buildHead();
+  try{ var _vf=document.getElementById('view-fabrics'); if(_vf&&!_vf.classList.contains('hidden')) renderFabrics(); }catch(_){}
   var rows=fa.map(function(f){ var types={}; STYLES.forEach(function(s){ var p=PIDX[f.id+':'+s._id]; types[s.name]={rate:(p&&p.rate!=null)?p.rate:DEFRATE, comment:(p&&p.comment)?p.comment:''}; }); return {fabric:f.name,price:(f.base_price==null?'':String(f.base_price)),width:String(f.roll_width||54),code:(f.code||''),types:types}; });
   renderRows(rows);
   computeBoardFabs(); renderListings(); showView('styles');
   dirtyStyles.clear(); dirtyTrims.clear(); dirtyFabs.clear(); dirtyListings.clear();
   dbStatus('ok','✓ подключено · '+LISTINGS.length+' листингов');
 }
+
+/* ==== Вкладки «Ткани» и «Сетка Aspect» (2026-07-10) ==== */
+var FABREC=[]; var dirtyFabRows={};
+function srcBadge(src,note){ var m={manual:'вручную',costmaster:'Cost Master',estimated:'оценка'};
+  var cls=src||'none', lbl=src?(m[src]||src):'нет цены';
+  return '<span class="srcb '+cls+'" title="'+escapeHtml(note||'')+'">'+lbl+'</span>'; }
+function renderFabrics(){ var host=document.getElementById('fabBody'); if(!host) return;
+  var q=((document.getElementById('fabSearch')||{}).value||'').toLowerCase();
+  var rows=FABREC.filter(function(f){ return !q || f.name.toLowerCase().indexOf(q)>=0; });
+  host.innerHTML=rows.map(function(f,i){ var note=f.price_note||'';
+    return '<tr data-fid="'+f.id+'">'
+      +'<td class="rownum">'+(i+1)+'</td>'
+      +'<td><b>'+escapeHtml(f.name)+'</b>'+(f.is_discontinued?' <span class="srcb none">discontinued</span>':'')+'</td>'
+      +'<td><input type="text" data-ff="code" value="'+escapeHtml(f.code||'')+'" maxlength="6" style="width:60px;text-transform:uppercase"></td>'
+      +'<td><input class="num" type="number" min="0" step="0.01" data-ff="price" value="'+(f.base_price==null?'':f.base_price)+'" style="width:86px"></td>'
+      +'<td><input class="num" type="number" min="1" step="1" data-ff="width" value="'+(f.roll_width||54)+'" style="width:60px"></td>'
+      +'<td>'+srcBadge(f.price_source,note)+'</td>'
+      +'<td class="note" title="'+escapeHtml(note)+'">'+escapeHtml(note.length>90?note.slice(0,90)+'…':note)+'</td>'
+      +'<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+(f.price_updated_at?new Date(f.price_updated_at).toLocaleDateString('ru-RU'):'')+'</td>'
+    +'</tr>'; }).join('');
+  host.querySelectorAll('input').forEach(function(el){ el.addEventListener('input', function(){
+    var tr=el.closest('tr'); dirtyFabRows[tr.getAttribute('data-fid')]=true; markUnsaved(); }); });
+  updateFabCount(); }
+function updateFabCount(){ var el=document.getElementById('fabCount'); if(!el) return;
+  var total=FABREC.length, priced=0, est=0;
+  FABREC.forEach(function(f){ if(f.base_price!=null)priced++; if(f.price_source==='estimated')est++; });
+  el.textContent=total+' тканей · '+priced+' с ценой · '+est+' оценок · '+(total-priced)+' без цены'; }
+async function fabCommit(){ if(!sb) return; var ids=Object.keys(dirtyFabRows);
+  if(!ids.length){ dbStatus('ok','нет изменений'); return; }
+  var _u=await sb.auth.getUser(); if(_u.error||!_u.data||!_u.data.user){ dbStatus('warn','сессия истекла — НЕ сохранено, войдите снова'); if(typeof showLogin==='function')showLogin(); return; }
+  dbStatus('saving');
+  try{
+    for(var i=0;i<ids.length;i++){ var fid=Number(ids[i]);
+      var tr=document.querySelector('#fabBody tr[data-fid="'+fid+'"]'); if(!tr) continue;
+      var rec=null; for(var j=0;j<FABREC.length;j++){ if(FABREC[j].id===fid){ rec=FABREC[j]; break; } } if(!rec) continue;
+      var pv=tr.querySelector('[data-ff=price]').value, wv=tr.querySelector('[data-ff=width]').value, cv=tr.querySelector('[data-ff=code]').value.trim().toUpperCase();
+      var newPrice=(pv===''?null:Number(pv)); var oldPrice=(rec.base_price==null?null:Number(rec.base_price));
+      var upd={ base_price:newPrice, roll_width:(Number(wv)||54), code:(cv||null) };
+      if(newPrice!==oldPrice){ upd.price_source=(newPrice==null?null:'manual'); upd.price_updated_at=new Date().toISOString();
+        if(newPrice!=null&&rec.price_source==='estimated') upd.price_note='Проверено вручную '+new Date().toLocaleDateString('ru-RU')+' (была оценка '+oldPrice+').'; }
+      var r=await sb.from('fabrics').update(upd).eq('id',fid); if(r.error) throw r.error;
+      for(var k in upd) rec[k]=upd[k];
+      try{ var gr=(typeof gridRowFor==='function')?gridRowFor(rec.name):null;
+        if(gr){ gr.querySelector('[data-f=price]').value=(newPrice==null?'':String(newPrice)); var ce=gr.querySelector('[data-f=code]'); if(ce)ce.value=(cv||''); } }catch(_){}
+    }
+    dirtyFabRows={}; renderFabrics();
+    var rs=await sb.rpc('take_snapshot',{p_label:'Ткани: правка цен '+new Date().toLocaleString('ru-RU'),p_actor:actorName()});
+    dbStatus('ok', rs.error?('✓ записано (снапшот: '+rs.error.message+')'):'✓ ткани записаны + точка отката');
+  }catch(e){ dbStatus('warn',(e&&e.message)||String(e)); } }
+function fillGridFilters(){ var fs=document.getElementById('gridFab'); if(!fs) return; var cur=fs.value;
+  var sorted=FABREC.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+  fs.innerHTML='<option value="">— выберите ткань —</option>'+sorted.map(function(f){ return '<option value="'+f.id+'">'+escapeHtml(f.name)+'</option>'; }).join('');
+  if(cur) fs.value=cur; }
+async function loadGrid(){ if(!sb) return; var fs=document.getElementById('gridFab'); var host=document.getElementById('gridWrap'); var cnt=document.getElementById('gridCount');
+  var fid=fs?fs.value:''; if(!fid){ host.innerHTML='<p class="sub">Выберите ткань — покажу её ценовые точки.</p>'; if(cnt)cnt.textContent=''; return; }
+  host.innerHTML='<p class="sub">загрузка…</p>';
+  var r=await sb.from('aspect_price_points').select('*').eq('fabric_id',Number(fid)).order('listing_id').order('h_max',{nullsFirst:false}).order('w_max',{nullsFirst:false});
+  if(r.error){ host.innerHTML='<p class="sub">ошибка: '+escapeHtml(r.error.message)+'</p>'; return; }
+  var rows=r.data||[]; var byL={}, order=[];
+  rows.forEach(function(p){ if(!byL[p.listing_id]){ byL[p.listing_id]=[]; order.push(p.listing_id); } byL[p.listing_id].push(p); });
+  if(cnt) cnt.textContent=rows.length+' точек · '+order.length+' листингов';
+  if(!rows.length){ host.innerHTML='<p class="sub">Для этой ткани сеток нет.</p>'; return; }
+  var html='';
+  order.forEach(function(lid){ var ps=byL[lid]; var title='';
+    try{ for(var i=0;i<LISTINGS.length;i++){ if(String(LISTINGS[i].id)===String(lid)){ title=LISTINGS[i].t||''; break; } } }catch(_){}
+    var sname=(ps[0].style_id!=null&&typeof STYLE_NAME!=='undefined'&&STYLE_NAME[ps[0].style_id])?STYLE_NAME[ps[0].style_id]:'';
+    var mm=(ps[0].match_method==='sku');
+    html+='<h3 style="margin:16px 0 6px;font-size:13px"><a href="https://www.etsy.com/listing/'+lid+'" target="_blank" rel="noopener">'+lid+'</a> '
+      +escapeHtml(title.length>70?title.slice(0,70)+'…':title)
+      +(sname?' <span class="srcb costmaster">'+escapeHtml(sname)+'</span>':'')
+      +' <span class="srcb '+(mm?'manual':'estimated')+'">'+(mm?'SKU-матч':'по названию')+'</span></h3>';
+    html+='<table><thead><tr><th>Размер</th><th>Цена CAD</th><th>SKU</th></tr></thead><tbody>';
+    ps.forEach(function(p){ html+='<tr><td>'+escapeHtml(p.size_label)+'</td><td style="text-align:right;font-weight:600">'+Number(p.price_cad).toFixed(2)+'</td><td style="color:var(--muted);font-size:11px">'+escapeHtml(p.sku||'')+'</td></tr>'; });
+    html+='</tbody></table>'; });
+  host.innerHTML=html; }
 
 /* ---- аутентификация (magic-link) ---- */
 function showLogin(){ var l=document.getElementById('dbLogin'); if(l)l.style.display='flex'; }
