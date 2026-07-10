@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aspect — Прайс-интейк: ткани × типы штор</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
     --bg:#faf7f1; --surface:#f3ece0; --line:#e6ddd0; --line2:#d9cdba;
@@ -116,6 +117,12 @@
   #view-styles .exp{color:var(--muted);font-size:11.5px}
   #view-styles .exhead{display:flex;justify-content:space-between;gap:6px;align-items:center}
   #view-styles .addex{font-size:12px;color:var(--accent2);cursor:pointer;background:none;border:1px dashed var(--line2);border-radius:6px;padding:6px 10px;width:100%}
+  #view-styles .exref{border:1px solid var(--line);border-radius:7px;padding:7px 8px;margin-bottom:7px;background:#fff}
+  #view-styles .exref-lbl{font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:3px}
+  #view-styles .exref input.exu{width:100%;border:1px solid var(--line2);background:#fff;border-radius:5px;padding:5px 7px;font:inherit;font-size:12px;color:var(--text)}
+  #view-styles .exref input.exu:focus{outline:none;border-color:var(--accent2)}
+  #view-styles .exref-link{display:block;margin-top:4px;color:var(--link);font-size:11.5px;text-decoration:underline;word-break:break-all;overflow-wrap:anywhere}
+  #view-styles .exref-link:hover{color:var(--rom)}
   #view-styles td{vertical-align:top}
   #view-styles .rowact{display:flex;flex-direction:column;gap:5px;align-items:center}
   #view-styles .x{cursor:pointer;border:1px solid var(--line2);background:#fff;border-radius:6px;padding:3px 8px;font-size:13px;color:var(--warn)}
@@ -209,13 +216,16 @@
   <div id="lsWarn" class="lswarn hidden">⚠ Этот браузер не сохраняет прогресс между открытиями файла (localStorage недоступен при открытии с диска). Чтобы не потерять работу — периодически жмите «Скачать всё в один файл» и храните этот файл; чтобы продолжить позже — нажмите «Загрузить файл прогресса».</div>
   <div class="nav">
     <button id="tab-styles" class="primary" onclick="showView('styles')">Стили</button>
-    <button id="tab-trims" onclick="showView('trims')">Тримы</button>
+    <button id="tab-trims" onclick="showView('trims')">Ромы</button>
     <button id="tab-fabrics" onclick="showView('fabrics')">Ткани</button>
     <button id="tab-price" onclick="showView('price')">Ставки по стилям</button>
     <button id="tab-grid" onclick="showView('grid')">Сетка Aspect</button>
     <button id="tab-list" onclick="showView('list')">Листинги по тканям</button>
     <button id="tab-swatches" onclick="showView('swatches')">Свотчи</button>
     <button id="tab-trimswatches" onclick="showView('trimswatches')">Trim Swatches</button>
+    <button id="tab-masters" onclick="showView('masters')">Эталоны</button>
+    <button id="tab-newlisting" onclick="showView('newlisting')">Новый листинг</button>
+    <button id="tab-media" onclick="showView('media')">Медиа</button>
     <button id="tab-history" onclick="showView('history')">История / Откат</button>
     <div class="spacer"></div>
     <span class="count" id="navcount"></span>
@@ -241,7 +251,7 @@
         <thead><tr>
           <th style="width:18%;text-align:left">Стиль · код</th>
           <th style="width:42%;text-align:left">Конструкция / описание</th>
-          <th style="width:32%;text-align:left">Примеры (ссылки)</th>
+          <th style="width:32%;text-align:left">Эталонный пример</th>
           <th style="width:8%"></th>
         </tr></thead>
         <tbody id="stbody"></tbody>
@@ -251,15 +261,15 @@
 
   <!-- ================= TRIMS ================= -->
   <section id="view-trims" class="hidden">
-    <h1>Тримы / каймы — справочник</h1>
-    <p class="sub">Декоративная отделка (border, inset, ribbon, greek key, scallop), которая нашивается поверх полотна. <b>Это не fold-стиль</b> — это отдельное измерение: штора того же стиля (например Relaxed) с тримом — отдельный продукт. Тримы отсюда становятся вариантами меню «трим» на вкладке «Листинги».</p>
+    <h1>Ромы — дизайны отделки (справочник)</h1>
+    <p class="sub">Декоративная отделка (border, inset, ribbon, greek key, scallop), которая нашивается поверх полотна. <b>Это не fold-стиль</b> — это отдельное измерение: штора того же стиля (например Relaxed) с ромом — отдельный продукт. Ромы отсюда становятся вариантами меню «ром» на вкладке «Листинги». (Не путать с деко-тримами — полосками со свотчами на вкладке Trim Swatches.)</p>
 
     <div class="note">
-      <b>Как работает:</b> трим — это <b>третье измерение</b> продукта: <code>Стиль × Ткань × Трим</code>. Цена трима задаётся здесь (она зависит от дизайна каймы, а не от ткани). У каждого листинга трим выбирается отдельно; по умолчанию — <b>без трима</b>. В колонке <b>«Эскиз / фото»</b> — референс-фото дизайна (нажмите, чтобы увеличить).
+      <b>Как работает:</b> ром — это <b>третье измерение</b> продукта: <code>Стиль × Ткань × Ром</code>. Цена рома задаётся здесь (она зависит от дизайна отделки, а не от ткани). У каждого листинга ром выбирается отдельно; по умолчанию — <b>без рома</b>. В колонке <b>«Эскиз / фото»</b> — референс-фото дизайна (нажмите, чтобы увеличить).
     </div>
 
     <div class="bar">
-      <button class="primary" onclick="trAdd()">+ Добавить трим</button>
+      <button class="primary" onclick="trAdd()">+ Добавить ром</button>
       <button class="savefoot" onclick="dbCommit()">💾 Записать в базу</button>
       <div class="spacer"></div>
       <span class="count" id="trcount"></span>
@@ -270,7 +280,7 @@
         <thead><tr>
           <th style="width:11%;text-align:left">Код</th>
           <th style="width:40%;text-align:left">Описание каймы / конструкция</th>
-          <th style="width:13%;text-align:left">Цена трима (CAD)</th>
+          <th style="width:13%;text-align:left">Цена рома (CAD)</th>
           <th style="width:20%;text-align:left">Эскиз / фото</th>
           <th style="width:16%"></th>
         </tr></thead>
@@ -278,7 +288,7 @@
       </table>
     </div>
     <div class="foot">
-      <button class="primary" onclick="trAdd()">+ Добавить трим</button>
+      <button class="primary" onclick="trAdd()">+ Добавить ром</button>
       <button class="savefoot" onclick="dbCommit()">💾 Записать в базу</button>
     </div>
   </section>
@@ -290,7 +300,7 @@
 
     <div class="note">
       <b>Как заполнять:</b> в каждой колонке-типе укажите <b>ставку $/час</b> (по умолчанию 30) и, при необходимости, комментарий.
-      <b>Цена за ярд, ширина рулона и код ткани</b> переехали на вкладку <b>«Ткани»</b>. <b>Цена трима</b> теперь задаётся отдельно на вкладке <b>«Тримы»</b> (трим зависит от дизайна каймы, а не от ткани).
+      <b>Цена за ярд, ширина рулона и код ткани</b> переехали на вкладку <b>«Ткани»</b>. <b>Цена рома</b> теперь задаётся отдельно на вкладке <b>«Ромы»</b>.
       Когда закончите &mdash; нажмите <b>«Скачать всё в один файл»</b> вверху и пришлите файл назад. Всё (стили, тримы, цены, листинги) сохраняется автоматически и попадает в один Excel-файл.
     </div>
 
@@ -351,7 +361,7 @@
     <div class="note">
       <b>Как работать:</b> листинги сгруппированы по тканям. Блок <b>«Без ткани»</b> вверху &mdash; листинги без присвоенной ткани (очередь разметки).
       Выбери ткань в меню <b>«→ ткань»</b> на карточке, чтобы присвоить или исправить. Стиль листинга задаётся <b>радиогруппой</b> (варианты берутся из вкладки «Стили»).
-      Выбор ткани, стиля или трима теперь <b>не перемещает карточку сразу</b> — нажмите <b>«Применить»</b> на карточке (или <b>Refresh</b>), чтобы перегруппировать. Всё сохраняется автоматически; кнопка <b>«Скачать всё в один файл»</b> вверху соберёт все листы в один Excel.
+      Выбор ткани, стиля или рома теперь <b>не перемещает карточку сразу</b> — нажмите <b>«Применить»</b> на карточке (или <b>Refresh</b>), чтобы перегруппировать. Всё сохраняется автоматически; кнопка <b>«Скачать всё в один файл»</b> вверху соберёт все листы в один Excel.
     </div>
 
     <div class="bar">
@@ -363,11 +373,11 @@
         <select id="groupby" onchange="setGroupBy(this.value)" style="font-size:13px;padding:4px 6px">
           <option value="fab">Ткань</option>
           <option value="style">Стиль</option>
-          <option value="trim">Трим</option>
+          <option value="trim">Ром</option>
         </select>
       </label>
       <input id="newfab" type="hidden">
-      <button onclick="autoTagTrims()" title="грубо проставить трим по ключевым словам в заголовке (greek key, grosgrain, scallop, diamond)">Авто-трим по заголовкам</button>
+      <button onclick="autoTagTrims()" title="грубо проставить трим по ключевым словам в заголовке (greek key, grosgrain, scallop, diamond)">Авто-ром по заголовкам</button>
       <button onclick="toggleAll(true)">Свернуть всё</button>
       <button onclick="toggleAll(false)">Развернуть всё</button>
       <div class="spacer"></div>
@@ -408,6 +418,34 @@
     <div id="twGrid"></div>
   </section>
 
+  <section id="view-masters" class="hidden">
+    <h1>Эталоны</h1>
+    <p class="sub">Мастер-листинг на стиль: тексты по 4 каналам, эталонный фотосет, живая сетка цен (движок из базы), статус <b>черновик → эталон</b>. Утверждённый эталон станет шаблоном конструктора «Новый листинг».</p>
+    <div id="maChips" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"></div>
+    <div id="maCard" class="note">Выбери стиль…</div>
+  </section>
+  <div id="maPreview" class="sklb hidden" style="cursor:default;align-items:flex-start;overflow:auto;padding:30px 0">
+    <div style="background:#fff;border-radius:10px;max-width:860px;width:94vw;margin:auto;padding:22px 26px;position:relative">
+      <button style="position:absolute;top:10px;right:12px" onclick="document.getElementById('maPreview').classList.add('hidden')">✕ Закрыть</button>
+      <div id="maPrevTabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div id="maPrevBody"></div>
+    </div>
+  </div>
+  <section id="view-media" class="hidden">
+    <h1>Медиа-библиотека</h1>
+    <p class="sub">Все файлы Storage (бакеты <code>media</code> и <code>swatches</code>) с привязкой к ткани / листингу / эталону (таблица <code>media</code>). Здесь же — <b>полный бэкап</b>: все таблицы базы + все файлы Storage одним zip-архивом.</p>
+    <div class="bar">
+      <button class="primary" onclick="MD.backup()">⬇ Скачать ВСЁ (полный бэкап)</button>
+      <span id="mdBackupMsg" class="sub"></span>
+    </div>
+    <div id="mdGrid" class="note" style="margin-top:12px">загрузка…</div>
+  </section>
+  <section id="view-newlisting" class="hidden">
+    <h1>Новый листинг</h1>
+    <p class="sub">Конструктор: <b>эталон × ткань × ром</b> → подстановка данных ткани в шаблоны (детерминированно, без AI) → цены движком из базы → SKU и вариации → Preview → сохранение со снапшотом цен → экспорты под 4 канала.</p>
+    <div id="nlPick" class="bar" style="flex-wrap:wrap;gap:10px"></div>
+    <div id="nlBody" class="note">Выбери эталон и ткань…</div>
+  </section>
   <section id="view-history" class="hidden">
     <h1>История / Откат</h1>
     <p class="sub">Все правки пишутся в базу автоматически. Кнопка <b>«Записать в базу»</b> дополнительно ставит <b>точку отката</b>, к которой можно вернуться в один клик. Журнал ведётся автоматически.</p>
@@ -611,7 +649,7 @@ function cardHTML(l){
     + `<div class="lctitle">${heroImg(l.id)}<a href="${listingUrl(l.id)}" target="_blank" rel="noopener">${escapeHtml(l.t)}</a></div>`
     + `<div class="fld"><span class="fldlab">Стиль</span><div class="stylepick">${styleRadioHTML(l.id, st)}</div></div>`
     + `<div class="fld"><span class="fldlab">Ткань</span>${moveSelectHTML(cur)}</div>`
-    + `<div class="fld"><span class="fldlab">Трим</span>${trimSelectHTML(trim)}${trimPreviewHTML(l.id, trim)}</div>`
+    + `<div class="fld"><span class="fldlab">Ром</span>${trimSelectHTML(trim)}${trimPreviewHTML(l.id, trim)}</div>`
     + `<div class="fld"><span class="fldlab">Заметка</span><textarea class="lnote" placeholder="комментарий…" oninput="onNote(this)">${escapeHtml(LNOTE[l.id]||"")}</textarea></div>`
     + `<div class="lrow" style="justify-content:flex-end"><button class="lsubmit" onclick="submitCard(this)" title="применить выбор и переместить карточку в нужную группу">Применить</button></div></div>`;
 }
@@ -763,27 +801,51 @@ function renderStyles(){
   const c = document.getElementById('stcount');
   if(c) c.textContent = STYLES.length + " стилей";
 }
+/* Эталонный пример: одна ссылка на канал (Etsy / Shopify / Amazon).
+   Хранится в том же jsonb-поле examples как [{channel,url}] — без изменения схемы БД. */
+const ST_REF_CHANNELS = [
+  ["etsy","ETSY","https://www.etsy.com/listing/…"],
+  ["shopify","Shopify","https://loganovashades.com/products/…"],
+  ["amazon","Amazon","https://www.amazon.com/dp/…"]
+];
+function stRefGet(i){
+  const m = {etsy:"",shopify:"",amazon:""};
+  ((STYLES[i]&&STYLES[i].examples)||[]).forEach(e=>{
+    if(e && e.channel && Object.prototype.hasOwnProperty.call(m,e.channel)) m[e.channel] = e.url||"";
+  });
+  return m;
+}
+function stRefSet(i,ch,url){
+  const m = stRefGet(i); m[ch] = url;
+  STYLES[i].examples = [
+    {channel:"etsy",url:m.etsy||""},
+    {channel:"shopify",url:m.shopify||""},
+    {channel:"amazon",url:m.amazon||""}
+  ];
+  if(typeof scheduleFlush==="function"){ if(typeof dirtyStyles!=="undefined"&&dirtyStyles.add) dirtyStyles.add(i); scheduleFlush(); }
+  else if(typeof autosave==="function"){ autosave(); }
+}
+function stRefInput(i,ch,el){
+  const url = el.value.trim();
+  stRefSet(i,ch,url);
+  const a = el.parentNode.querySelector(".exref-link");
+  if(a){ if(url){ a.href=url; a.textContent=url; a.title=url; a.style.display="block"; } else { a.style.display="none"; a.removeAttribute("href"); a.textContent=""; } }
+}
 function stRenderEx(i){
   const cell = document.getElementById('stex-'+i);
   if(!cell) return;
-  cell.innerHTML = "";
-  (STYLES[i].examples||[]).forEach((ex,j)=>{
-    const d = document.createElement('div');
-    d.className = "ex";
-    d.innerHTML =
-      `<div class="exhead">
-        <input class="exn" value="${escapeHtml(ex.name)}" placeholder="Название примера" oninput="stUpdEx(${i},${j},'name',this.value)">
-        <button class="x" title="удалить ссылку" onclick="stDelEx(${i},${j})">✕</button>
-      </div>
-      <input class="exu" value="${escapeHtml(ex.url)}" placeholder="https://www.etsy.com/listing/…" oninput="stUpdEx(${i},${j},'url',this.value)">
-      <input class="exp" value="${escapeHtml(ex.price)}" placeholder="цена / заметка (необязательно)" oninput="stUpdEx(${i},${j},'price',this.value)">`;
-    cell.appendChild(d);
-  });
-  const add = document.createElement('button');
-  add.className = "addex";
-  add.textContent = "+ ссылка-пример";
-  add.onclick = ()=> stAddEx(i);
-  cell.appendChild(add);
+  const refs = stRefGet(i);
+  cell.innerHTML = ST_REF_CHANNELS.map(c=>{
+    const key=c[0], lbl=c[1], ph=c[2], url=refs[key]||"";
+    const link = url
+      ? `<a class="exref-link" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}">${escapeHtml(url)}</a>`
+      : `<a class="exref-link" style="display:none" target="_blank" rel="noopener"></a>`;
+    return `<div class="exref">`
+      + `<div class="exref-lbl">${lbl}</div>`
+      + `<input class="exu" value="${escapeHtml(url)}" placeholder="${escapeHtml(ph)}" oninput="stRefInput(${i},'${key}',this)">`
+      + link
+      + `</div>`;
+  }).join("");
 }
 function stUpd(i,k,v){ STYLES[i][k]=v; autosave(); }
 function stUpdEx(i,j,k,v){ STYLES[i].examples[j][k]=v; autosave(); }
@@ -938,7 +1000,7 @@ function _xSheet(name, rows){
   return out;
 }
 function buildWorkbookXML(){
-  var trims = TRIMS.map(function(t){return {"Код":t.code,"Описание":t.desc||"","Цена трима (CAD)":t.price||"","Фото":t.preview?"есть":""};});
+  var trims = TRIMS.map(function(t){return {"Код":t.code,"Описание":t.desc||"","Цена рома (CAD)":t.price||"","Фото":t.preview?"есть":""};});
   var fabs = BOARDFABS.map(function(f){return {"Ткань":f,"Статус":(FABMETA[f]&&FABMETA[f].disc)?"discontinued":"active","Замена":(FABMETA[f]&&FABMETA[f].sub)||"","Листингов":LISTINGS.filter(function(l){return (LASSIGN[l.id]||"")===f;}).length};});
   var sheets=[["Стили",flattenStyles()],["Цены",flattenPrice()],["Листинги",flattenListings()],["Тримы",trims],["Ткани",fabs]];
   var xml='<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
@@ -963,7 +1025,7 @@ function flattenStyles(){
   return STYLES.map(s=>({
     "Стиль": s.name||"", "Код": s.code||"", "Флаг": s.badge||"",
     "Описание": s.desc||"",
-    "Примеры": (s.examples||[]).map(e=>`${e.name||''}${e.url?' ('+e.url+')':''}${e.price?' — '+e.price:''}`).join(" | ")
+    "Эталонный пример": (s.examples||[]).filter(e=>e&&e.url).map(e=>`${e.channel?e.channel.toUpperCase()+': ':''}${e.url}`).join(" | ")
   }));
 }
 function progressData(){
@@ -1397,6 +1459,60 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
 })();
 </script>
 <script>
+/* ===== PRICE ENGINE (Фаза 2 · 2026-07-10) =====
+   Движок цен из базы: style_params (бэнды) + app_settings (ставки) + цена ткани CAD/ярд.
+   Формула = канон Pillar/Cost_Master_v1:
+   COGS = mF·rate + mL·linRate + lab·labRate + fix; LF = r2(COGS·(1+overhead)·markup + sh);
+   BO = r2(LF + blackout_adder); Cordless = r2(база + cordless_adder), недоступен при cordless_available=false.
+   Все цены CAD (решение N 2026-07-10: база хранит CAD, USD — при экспорте по фикс-курсу из app_settings). */
+var PriceEngine=(function(){
+  var r2=function(n){ return Math.round(n*100)/100; };
+  /* b — строка style_params; rate — цена ткани CAD/ярд; cfg — {linRate,labRate,markup,overhead} */
+  function priceBand(b,rate,cfg){
+    var cogs = Number(b.fabric_yd)*rate + Number(b.lining_yd)*cfg.linRate
+             + Number(b.labour_hours)*cfg.labRate + Number(b.hardware_pkg_cad);
+    var lf = r2(cogs*(1+cfg.overhead)*cfg.markup + Number(b.shipping_cad));
+    var bo = r2(lf + Number(b.blackout_adder_cad));
+    var ok = !!b.cordless_available;
+    return { width_band:b.width_band, height_band:b.height_band, roll:b.roll_width,
+             id:b.id, offered:(b.offered!==false),
+             lf_corded:lf, bo_corded:bo,
+             lf_cordless: ok ? r2(lf+Number(b.cordless_adder_cad)) : null,
+             bo_cordless: ok ? r2(bo+Number(b.cordless_adder_cad)) : null };
+  }
+  /* bands — строки style_params одного стиля и рулона; возврат: {height_band:{width_band:{...цены}}} */
+  function grid(bands,rate,cfg){
+    var out={};
+    bands.slice().sort(function(a,b){ return (a.height_min-b.height_min)||(a.width_min-b.width_min); })
+      .forEach(function(b){ (out[b.height_band]=out[b.height_band]||{})[b.width_band]=priceBand(b,rate,cfg); });
+    return out;
+  }
+  /* Загрузка из Supabase: бэнды стиля+рулона и ставки. sbClient — авторизованный клиент хаба. */
+  function load(sbClient, styleId, roll){
+    return Promise.all([
+      sbClient.from('style_params').select('*').eq('style_id',styleId).eq('roll_width',roll)
+        .order('height_min').order('width_min'),
+      sbClient.from('app_settings').select('key,value')
+    ]).then(function(res){
+      if(res[0].error) throw res[0].error;
+      if(res[1].error) throw res[1].error;
+      var s={}; (res[1].data||[]).forEach(function(x){ s[x.key]=x.value; });
+      var cfg={ linRate:Number(s.lining_rate_cad_per_yd), labRate:Number(s.labour_rate_cad_per_hr),
+                markup:Number(s.retail_markup), overhead:Number(s.overhead_pct) };
+      ['linRate','labRate','markup','overhead'].forEach(function(k){
+        if(!isFinite(cfg[k])) throw new Error('PriceEngine: настройка '+k+' не задана в app_settings'); });
+      return { bands:res[0].data||[], cfg:cfg };
+    });
+  }
+  /* Удобный конец-в-конец вызов: сетка цен стиля × рулона × цены ткани */
+  function gridFromDB(sbClient, styleId, roll, fabricRate){
+    return load(sbClient, styleId, roll).then(function(x){ return grid(x.bands, fabricRate, x.cfg); });
+  }
+  return { r2:r2, priceBand:priceBand, grid:grid, load:load, gridFromDB:gridFromDB };
+})();
+window.PriceEngine=PriceEngine;
+</script>
+<script>
 /* ===== SWATCHES TAB (fabric_colors + Storage bucket 'swatches') ===== */
 (function(){
   function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
@@ -1782,6 +1898,1002 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
   };
 
   window.TW=TW;
+})();
+</script>
+<script>
+/* ===== MASTERS TAB «Эталоны» (Фаза 3 · 2026-07-10) =====
+   Карточка на стиль: тексты по 4 каналам (masters.texts jsonb), фотосет (masters.photoset),
+   живая сетка цен (PriceEngine из базы), статус draft → master, Preview с лимитами каналов
+   (канон: Стандарт-листинга_КАНАЛЬНЫЙ-СЛОЙ-v1 §B/E). Паттерн instant-write (как Свотчи). */
+(function(){
+var MA={styles:[],fabrics:[],m:null,styleId:null,ch:'etsy_loganova',grid:null,roll:120,rolls:[120]};
+var CHANNELS=[['etsy_loganova','Etsy · LOGANOVA'],['etsy_aspect','Etsy · Aspect'],['shopify','Shopify'],['amazon_handmade','Amazon Handmade']];
+var CHNAME={}; CHANNELS.forEach(function(c){CHNAME[c[0]]=c[1];});
+var GALMAX={etsy_loganova:10,etsy_aspect:10,shopify:10,amazon_handmade:9};
+var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function byId(id){return document.getElementById(id);}
+function bytes(s){ try{ return new TextEncoder().encode(s||'').length; }catch(e){ return (s||'').length; } }
+
+/* --- Проверки лимитов канона (чистые, тестируемые) --- */
+MA.checkChannel=function(ch,t){
+  t=t||{}; var r=[]; function add(ok,label){ r.push({ok:!!ok,label:label}); }
+  if(ch==='etsy_loganova'||ch==='etsy_aspect'){
+    var ti=t.title||'', tags=t.tags||[], d=t.description||'';
+    add(ti.length>0&&ti.length<=140,'Title ≤140 ('+ti.length+')');
+    add(/roman shade/i.test(ti.slice(0,55)),'Head-ключ в первых ~55');
+    add(tags.length===13,'Ровно 13 тегов ('+tags.length+')');
+    var long=tags.filter(function(x){return (x||'').length>20;});
+    add(long.length===0,'Теги ≤20 симв.'+(long.length?' (длинные: '+long.join(', ')+')':''));
+    add(d.length>=160,'Хук: первые 160 симв = Google-сниппет');
+  }else if(ch==='shopify'){
+    var h1=t.h1||'', mt=t.meta_title||'', md=t.meta_desc||'';
+    add(h1.length>0&&h1.length<=60,'H1 ≤60 ('+h1.length+')');
+    add(mt.length>=50&&mt.length<=60,'Meta title 50–60 ('+mt.length+')');
+    add(md.length>=150&&md.length<=160,'Meta desc 150–160 ('+md.length+')');
+    add((t.description||'').length>0,'Body заполнен');
+  }else if(ch==='amazon_handmade'){
+    var ati=t.title||'', bu=t.bullets||[], st=t.search_terms||'';
+    add(ati.length>0&&ati.length<=200,'Title ≤200 ('+ati.length+')');
+    add(/^LOGANOVA/i.test(ati),'Бренд первым (LOGANOVA…)');
+    add(bu.length===5,'5 bullets ('+bu.length+')');
+    var buLong=bu.filter(function(x){return (x||'').length>260;});
+    add(buLong.length===0,'Bullets ≤~250 симв.');
+    add(bytes(st)<=249,'Search terms ≤249 байт ('+bytes(st)+')');
+    add((t.description||'').length>=300,'Description ≥300 симв.');
+  }
+  return r;
+};
+MA.checksOk=function(m){ var bad=0; CHANNELS.forEach(function(c){ MA.checkChannel(c[0],(m.texts||{})[c[0]]).forEach(function(x){ if(!x.ok)bad++; }); }); return bad===0; };
+
+/* --- Данные --- */
+MA.render=async function(){
+  var card=byId('maCard');
+  if(!window.sb){ card.innerHTML='<p class="sub">Сначала войди в базу.</p>'; return; }
+  var res=await Promise.all([
+    sb.from('styles').select('id,code,name').order('sort_order'),
+    sb.from('fabrics').select('id,name,base_price,roll_width').eq('is_deleted',false).order('name'),
+    sb.from('masters').select('*')
+  ]);
+  for(var i=0;i<3;i++){ if(res[i].error){ card.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
+  MA.styles=res[0].data||[]; MA.fabrics=res[1].data||[]; MA.masters=res[2].data||[];
+  if(!MA.styleId&&MA.styles.length)MA.styleId=MA.styles[0].id;
+  var chips=byId('maChips'); chips.innerHTML='';
+  MA.styles.forEach(function(s){
+    var m=MA.masters.find(function(x){return x.style_id===s.id;});
+    var b=document.createElement('button'); b.className='mini'+(s.id===MA.styleId?' on':'');
+    b.textContent=s.name+(m?(m.status==='master'?' ✅':' ✏️'):'');
+    b.onclick=function(){ MA.styleId=s.id; MA.render(); };
+    chips.appendChild(b);
+  });
+  MA.m=MA.masters.find(function(x){return x.style_id===MA.styleId;})||{style_id:MA.styleId,status:'draft',texts:{},photoset:[],fabric_id:null};
+  await MA.loadRolls(); MA.card();
+};
+MA.loadRolls=async function(){
+  var r=await sb.from('style_params').select('roll_width').eq('style_id',MA.styleId);
+  var set={}; (r.data||[]).forEach(function(x){set[x.roll_width]=1;});
+  MA.rolls=Object.keys(set).map(Number).sort(function(a,b){return b-a;});
+  if(!MA.rolls.length)MA.rolls=[];
+  if(MA.rolls.indexOf(MA.roll)<0)MA.roll=MA.rolls[0]||120;
+};
+MA.fabric=function(){ return MA.fabrics.find(function(f){return f.id===(MA.m.fabric_id||null);})||null; };
+
+/* --- Карточка --- */
+MA.card=function(){
+  var m=MA.m, s=MA.styles.find(function(x){return x.id===MA.styleId;})||{};
+  var f=MA.fabric();
+  var h='<div class="lcard" style="padding:14px 16px">';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">';
+  h+='<b style="font-size:17px">'+esc(s.name||'')+'</b>';
+  h+='<span class="badge '+(m.status==='master'?'b-ok':'b-warn')+'">'+(m.status==='master'?'эталон':'черновик')+'</span>';
+  h+='<span class="spacer" style="flex:1"></span>';
+  h+='<button class="mini" onclick="MA.save()">💾 Сохранить</button>';
+  h+='<button class="mini" onclick="MA.preview()">👁 Preview по каналам</button>';
+  h+=(m.status==='master'
+    ? '<button class="mini del" onclick="MA.setStatus(\'draft\')">↩ В черновик</button>'
+    : '<button class="mini on" onclick="MA.setStatus(\'master\')">✅ Утвердить эталон</button>');
+  h+='</div>';
+  /* ткань + рулон для живой сетки */
+  h+='<div class="bar" style="margin-top:10px"><label>Эталонная ткань:</label> <select id="maFab" onchange="MA.setFab(this.value)">';
+  h+='<option value="">—</option>';
+  MA.fabrics.forEach(function(x){ h+='<option value="'+x.id+'"'+(m.fabric_id===x.id?' selected':'')+'>'+esc(x.name)+' ('+(x.base_price||'?')+' CAD/ярд)</option>'; });
+  h+='</select> <label>Рулон:</label> <select id="maRoll" onchange="MA.setRoll(this.value)">';
+  MA.rolls.forEach(function(r){ h+='<option value="'+r+'"'+(r===MA.roll?' selected':'')+'>'+r+'″</option>'; });
+  h+='</select></div>';
+  /* каналы */
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 8px">';
+  CHANNELS.forEach(function(c){ h+='<button class="mini'+(MA.ch===c[0]?' on':'')+'" onclick="MA.setCh(\''+c[0]+'\')">'+esc(c[1])+'</button>'; });
+  h+='</div><div id="maFields"></div>';
+  /* фотосет */
+  h+='<h2 style="margin-top:16px">Эталонный фотосет ('+(m.photoset||[]).length+')</h2><div id="maPhotos"></div>';
+  /* сетка цен */
+  h+='<h2 style="margin-top:16px">Живая сетка цен · CAD'+(f?' · '+esc(f.name)+' '+f.base_price+'/ярд · рулон '+MA.roll+'″':'')+'</h2><div id="maGrid" class="note">'+(f?'загрузка…':'выбери эталонную ткань')+'</div>';
+  h+='</div>';
+  byId('maCard').innerHTML=h;
+  MA.fields(); MA.photos(); if(f)MA.renderGrid();
+};
+MA.setCh=function(c){ MA.readFields(); MA.ch=c; MA.card(); };
+MA.setFab=function(v){ MA.m.fabric_id=v?Number(v):null; MA.card(); };
+MA.setRoll=function(v){ MA.roll=Number(v); MA.card(); };
+
+/* --- Поля канала --- */
+function T(id,label,val,attrs){ return '<div class="fld" style="margin:6px 0"><span class="fldlab">'+label+'</span><input id="'+id+'" style="width:100%" value="'+esc(val||'')+'" '+(attrs||'')+' oninput="MA.counters()"></div>'; }
+function TA(id,label,val,rows){ return '<div class="fld" style="margin:6px 0;align-items:flex-start"><span class="fldlab">'+label+'</span><textarea id="'+id+'" rows="'+(rows||4)+'" style="width:100%" oninput="MA.counters()">'+esc(val||'')+'</textarea></div>'; }
+MA.fields=function(){
+  var t=(MA.m.texts||{})[MA.ch]||{}; var h='';
+  if(MA.ch==='etsy_loganova'||MA.ch==='etsy_aspect'){
+    h+=T('maTitle','Title',t.title);
+    h+=TA('maTags','13 тегов (через запятую)',(t.tags||[]).join(', '),2);
+    h+=TA('maDesc','Description',t.description,12);
+  }else if(MA.ch==='shopify'){
+    h+=T('maH1','H1',t.h1); h+=T('maMT','Meta title',t.meta_title); h+=T('maMD','Meta description',t.meta_desc);
+    h+=TA('maDesc','Body',t.description,12);
+  }else{
+    h+=T('maTitle','Title',t.title);
+    h+=TA('maBullets','5 bullets (по одному в строке)',(t.bullets||[]).join('\n'),7);
+    h+=T('maST','Backend search terms',t.search_terms);
+    h+=TA('maDesc','Description',t.description,12);
+  }
+  h+='<div id="maChecks" class="sub" style="margin-top:6px"></div>';
+  byId('maFields').innerHTML=h; MA.counters();
+};
+MA.readFields=function(){
+  var tx=MA.m.texts=MA.m.texts||{}; var t=tx[MA.ch]=tx[MA.ch]||{};
+  function v(id){ var e=byId(id); return e?e.value:undefined; }
+  if(MA.ch==='etsy_loganova'||MA.ch==='etsy_aspect'){
+    if(byId('maTitle'))t.title=v('maTitle');
+    if(byId('maTags'))t.tags=v('maTags').split(',').map(function(x){return x.trim();}).filter(Boolean);
+    if(byId('maDesc'))t.description=v('maDesc');
+  }else if(MA.ch==='shopify'){
+    if(byId('maH1'))t.h1=v('maH1'); if(byId('maMT'))t.meta_title=v('maMT'); if(byId('maMD'))t.meta_desc=v('maMD');
+    if(byId('maDesc'))t.description=v('maDesc');
+  }else{
+    if(byId('maTitle'))t.title=v('maTitle');
+    if(byId('maBullets'))t.bullets=v('maBullets').split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    if(byId('maST'))t.search_terms=v('maST');
+    if(byId('maDesc'))t.description=v('maDesc');
+  }
+};
+MA.counters=function(){
+  MA.readFields();
+  var r=MA.checkChannel(MA.ch,(MA.m.texts||{})[MA.ch]);
+  var el=byId('maChecks'); if(!el)return;
+  el.innerHTML=r.map(function(x){return '<span style="margin-right:12px;color:'+(x.ok?'#2e7d32':'#c62828')+'">'+(x.ok?'✓':'✗')+' '+esc(x.label)+'</span>';}).join('');
+};
+
+/* --- Фото-пакет по канону съёмки (Bible A1: 11 кадров + палитра) --- */
+MA.SHOTLIST=[
+  {n:1, role:'hero',    label:'Hero room-scene',              real:false, note:'штора в окне, интерьер, естественный свет'},
+  {n:2, role:'fold',    label:'Fold detail (relaxed/flat)',   real:false, note:'складка крупно, силуэт фолда'},
+  {n:3, role:'light',   label:'Light behavior',               real:false, note:'свет сквозь LF vs эффект blackout'},
+  {n:4, role:'macro',   label:'Fabric macro',                 real:true,  note:'макро переплетения — реальный свотч, НЕ AI'},
+  {n:5, role:'mech',    label:'Mechanism',                    real:true,  note:'chain / cordless / motorized — реальное фото'},
+  {n:6, role:'lining',  label:'Lining / border',              real:true,  note:'подкладка изнутри — реальное фото'},
+  {n:7, role:'scale',   label:'Scale / context',              real:false, note:'штора рядом с мебелью/человеком'},
+  {n:8, role:'mount',   label:'Mount diagram',                real:false, note:'inside vs outside — инфографика'},
+  {n:9, role:'measure', label:'How-to-measure diagram',       real:false, note:'где мерить, до 1/8″'},
+  {n:10,role:'maker',   label:'Maker / workroom (E-E-A-T)',   real:true,  note:'Natalya за работой — реальное фото'},
+  {n:11,role:'video',   label:'Видео (подъём/свет/ASMR)',     real:true,  note:'мастер для всех видео-каналов'},
+  {n:12,role:'palette', label:'Палитра цветов',               real:true,  note:'обязательна при опции Colour'}
+];
+MA.CH_PHOTO_REQ='Каналы: Etsy — до 10 фото 2000×2000 (hero читается в кропе ~5:4) + видео 5–15с · Amazon — до 9, MAIN №1 строго на чисто-белом, товар ≥85% · Shopify — 8–10 квадратов 2048 · Pinterest 2:3 1000×1500. Один сет по списку ниже закрывает все каналы (канон A1/A4).';
+/* photoset: массив {n, role, label, url} (старый формат-строки конвертируется) */
+MA.psNorm=function(ps){
+  ps=ps||[];
+  if(ps.length&&typeof ps[0]==='string')ps=ps.map(function(u,i){var s=MA.SHOTLIST[i]||{};return {n:s.n||i+1,role:s.role||'',label:s.label||('Фото '+(i+1)),url:u};});
+  return ps;
+};
+MA.psUrls=function(ps){ return MA.psNorm(ps).map(function(p){return p.url;}).filter(Boolean); };
+MA.photoPanel=function(elId, ps, ns){
+  ps=MA.psNorm(ps);
+  var h='<p class="sub" style="margin:4px 0 8px">'+esc(MA.CH_PHOTO_REQ)+'</p>';
+  h+='<div class="wrap"><table><thead><tr><th>#</th><th>Кадр (канон A1)</th><th>Тип</th><th>Фото</th><th style="min-width:210px">Действия</th></tr></thead><tbody>';
+  MA.SHOTLIST.forEach(function(s){
+    var p=ps.find(function(x){return x.n===s.n;})||{};
+    h+='<tr><td>'+s.n+'</td><td><b>'+esc(s.label)+'</b><div class="sub">'+esc(s.note)+'</div></td>'
+      +'<td>'+(s.real?'<span class="badge b-warn">только реальное</span>':'<span class="badge b-mut">можно AI</span>')+'</td>'
+      +'<td>'+(p.url?'<img src="'+esc(p.url)+'" style="width:56px;height:56px;object-fit:cover;border-radius:4px" onerror="this.style.opacity=.25">':'<span class="sub">пусто</span>')+'</td>'
+      +'<td><input type="file" accept="image/*" id="'+ns+'shot'+s.n+'" style="display:none" onchange="PH.up(\''+ns+'\','+s.n+',this)">'
+      +'<button class="mini" onclick="document.getElementById(\''+ns+'shot'+s.n+'\').click()">📤 загрузить</button> '
+      +(p.url?'<button class="mini del" onclick="PH.del(\''+ns+'\','+s.n+')">🗑</button> ':'')
+      +(s.real?'':'<button class="mini" onclick="PH.ai(\''+ns+'\','+s.n+')">✨ AI-промт</button>')
+      +'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  byId(elId).innerHTML=h;
+};
+
+/* --- PH: загрузка/удаление/AI-промт для фото-слотов (общее для Эталонов и конструктора) --- */
+window.PH=(function(){
+  function st(ns){
+    if(ns==='MA')return {
+      get:function(){ MA.m.photoset=MA.psNorm(MA.m.photoset); return MA.m.photoset; },
+      refresh:function(){ MA.photos(); MA.save(); },
+      ctx:function(){ var f=MA.fabric()||{}; var s=(MA.styles.find(function(x){return x.id===MA.styleId;})||{});
+        return {base:'master-style'+MA.styleId, fabric:f.name||'', material:'faux linen', hero:'', style:s.name||'', fabric_id:MA.m.fabric_id||null, master_id:MA.m.id||null}; }
+    };
+    return {
+      get:function(){ window.NL.photoset=MA.psNorm(window.NL.photoset); return window.NL.photoset; },
+      refresh:function(){ window.NL.build(); },
+      ctx:function(){ var N=window.NL; var f=(N.fabrics.find(function(x){return x.id===N.fabricId;})||{});
+        return {base:'listing-'+(f.name||'x').toLowerCase().replace(/[^a-z0-9]+/g,''), fabric:f.name||'', material:(N.material||'').toLowerCase(), hero:N.hero||'', style:'Relaxed with flat folds', fabric_id:N.fabricId||null, master_id:null}; }
+    };
+  }
+  return {
+    up: async function(ns,n,input){
+      var file=input.files&&input.files[0]; if(!file)return;
+      var S=st(ns), s=MA.SHOTLIST.find(function(x){return x.n===n;});
+      var ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+      var path=S.ctx().base+'/'+('0'+n).slice(-2)+'_'+s.role+'.'+ext;
+      var up=await sb.storage.from('media').upload(path, file, {upsert:true, contentType:file.type||'image/jpeg'});
+      if(up.error){ alert('Ошибка загрузки: '+up.error.message); return; }
+      var url=sb.storage.from('media').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+      var ps=S.get(); var p=ps.find(function(x){return x.n===n;});
+      if(p)p.url=url; else ps.push({n:n,role:s.role,label:s.label,url:url});
+      var c=S.ctx();
+      var _mr=await sb.from('media').insert({storage_path:path,url:url,kind:'listing_photo',fabric_id:c.fabric_id,master_id:c.master_id,note:s.label});
+      if(_mr&&_mr.error){ alert('Файл загружен в Storage, но запись в БД не удалась: '+_mr.error.message); return; }
+      if(typeof dbStatus==='function')dbStatus('ok','✓ фото «'+s.label+'» загружено');
+      S.refresh();
+    },
+    del: async function(ns,n){
+      var S=st(ns), s=MA.SHOTLIST.find(function(x){return x.n===n;});
+      var ps=S.get(); var p=ps.find(function(x){return x.n===n;}); if(!p)return;
+      if(!confirm('Убрать фото «'+s.label+'»?'))return;
+      if(p.url&&p.url.indexOf('/media/')>-1){
+        try{ var m=p.url.split('/media/')[1].split('?')[0]; await sb.storage.from('media').remove([decodeURIComponent(m)]); }catch(e){}
+      }
+      ps.splice(ps.indexOf(p),1); S.refresh();
+    },
+    buildPrompt: function(ns,n){
+      var S=st(ns), s=MA.SHOTLIST.find(function(x){return x.n===n;}), c=S.ctx();
+      return 'Professional interior product photo for a premium made-to-order Roman shade listing.\n'
+        +'Кадр: '+s.label+' — '+s.note+'.\n'
+        +'Товар: '+(c.style||'Relaxed Roman shade with flat folds')+', ткань '+(c.fabric||'—')+' ('+(c.material||'linen-look')+')'+(c.hero?', цвет '+c.hero:'')+'.\n'
+        +'Стиль: quiet luxury, естественный дневной свет, реалистичная драпировка, без людей крупным планом.\n'
+        +'Размер (канон A4): Etsy/сайт 2000×2000 (1:1); Amazon MAIN — чисто-белый фон, товар ≥85% кадра; Pinterest 1000×1500 (2:3).\n'
+        +'ИЗБЕГАТЬ 4 типовых AI-ошибок: (1) шов поперёк окна; (2) светящаяся полоса по краю blackout; (3) кривой/двойной нижний край; (4) текст/водяной знак в углу.';
+    },
+    ai: function(ns,n){
+      var s=MA.SHOTLIST.find(function(x){return x.n===n;});
+      if(s.real){ alert('«'+s.label+'» — только реальное фото (канон A1), AI нельзя.'); return; }
+      var prompt=PH.buildPrompt(ns,n);
+      var tabs=document.getElementById('maPrevTabs'); tabs.innerHTML='<b>✨ AI-фото · кадр '+n+' «'+MA.SHOTLIST.find(function(x){return x.n===n;}).label.replace(/</g,'')+'»</b>';
+      document.getElementById('maPrevBody').innerHTML=
+        '<p class="sub">Промт можно править перед запуском. «Исполнить» — генерация через edge-функцию img-gen (ключ хранится в секретах Supabase, не в странице); результат сразу встанет в слот и загрузится в Storage.</p>'
+        +'<textarea id="phPrompt" rows="10" style="width:100%;font-size:13px"></textarea>'
+        +'<div class="bar" style="margin-top:10px">'
+        +'<button class="mini on" id="phRun">▶ Исполнить — сгенерировать</button>'
+        +'<button class="mini" id="phCopy">📋 Копировать</button>'
+        +'<span id="phMsg" class="sub"></span></div>'
+        +'<div id="phResult" style="margin-top:10px"></div>';
+      document.getElementById('phPrompt').value=prompt;
+      document.getElementById('phCopy').onclick=function(){ try{ navigator.clipboard.writeText(document.getElementById('phPrompt').value); document.getElementById('phMsg').textContent='скопировано'; }catch(e){} };
+      document.getElementById('phRun').onclick=function(){ PH.run(ns,n); };
+      document.getElementById('maPreview').classList.remove('hidden');
+    },
+    run: async function(ns,n){
+      var msg=document.getElementById('phMsg'), btn=document.getElementById('phRun');
+      var prompt=document.getElementById('phPrompt').value;
+      btn.disabled=true; msg.textContent='генерирую… (10–30 сек)';
+      try{
+        var sess=await sb.auth.getSession();
+        var token=sess&&sess.data&&sess.data.session&&sess.data.session.access_token;
+        if(!token)throw new Error('нет сессии — войди в хаб заново');
+        var r=await fetch((window.SBURL||'')+'/functions/v1/img-gen',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':window.SBKEY||''},
+          body:JSON.stringify({prompt:prompt})
+        });
+        var out=await r.json();
+        if(!r.ok)throw new Error(out.error||('HTTP '+r.status));
+        /* base64 → blob → Storage → слот */
+        var bin=atob(out.image_b64), bytes=new Uint8Array(bin.length);
+        for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+        var blob=new Blob([bytes],{type:out.mime||'image/png'});
+        var S=st(ns), s=MA.SHOTLIST.find(function(x){return x.n===n;});
+        var ext=(out.mime||'image/png').split('/')[1].split('+')[0];
+        var path=S.ctx().base+'/'+('0'+n).slice(-2)+'_'+s.role+'_ai.'+ext;
+        var up=await sb.storage.from('media').upload(path, blob, {upsert:true, contentType:out.mime||'image/png'});
+        if(up.error)throw new Error('Storage: '+up.error.message);
+        var url=sb.storage.from('media').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+        var ps=S.get(); var p=ps.find(function(x){return x.n===n;});
+        if(p)p.url=url; else ps.push({n:n,role:s.role,label:s.label,url:url});
+        var cc=S.ctx();
+        var _mr=await sb.from('media').insert({storage_path:path,url:url,kind:'ai_photo',fabric_id:cc.fabric_id,master_id:cc.master_id,note:s.label+' (AI)'});
+        if(_mr&&_mr.error){ msg.textContent='✗ запись в БД не удалась: '+_mr.error.message; btn.disabled=false; return; }
+        document.getElementById('phResult').innerHTML='<img src="'+url.replace(/"/g,'')+'" style="max-width:320px;border-radius:8px"> <p class="sub">✓ сгенерировано ('+(out.model||'')+') и записано в слот '+n+'. Проверь на 4 типовых AI-ошибки перед публикацией.</p>';
+        msg.textContent='✓ готово';
+        S.refresh();
+      }catch(e){ msg.textContent='✗ '+(e.message||e); }
+      btn.disabled=false;
+    }
+  };
+})();
+MA.setShot=function(n,url){
+  var ps=MA.m.photoset=MA.psNorm(MA.m.photoset);
+  var s=MA.SHOTLIST.find(function(x){return x.n===n;});
+  var p=ps.find(function(x){return x.n===n;});
+  url=(url||'').trim();
+  if(p){ if(url)p.url=url; else ps.splice(ps.indexOf(p),1); }
+  else if(url)ps.push({n:n,role:s.role,label:s.label,url:url});
+  MA.photos();
+};
+MA.photos=function(){ MA.photoPanel('maPhotos', MA.m.photoset, 'MA'); };
+
+/* --- Живая сетка цен --- */
+MA.renderGrid=async function(){
+  var f=MA.fabric(), el=byId('maGrid'); if(!f||!el)return;
+  try{
+    var g=await PriceEngine.gridFromDB(sb, MA.styleId, MA.roll, Number(f.base_price));
+    MA.grid=g;
+    var hbs=Object.keys(g); if(!hbs.length){ el.innerHTML='нет бэндов для стиля/рулона в style_params'; return; }
+    var h='';
+    h+='<p class="sub">Галочка = бэнд входит в <b>утверждённый диапазон</b> продаж стиля (действует на конструктор и экспорты).</p>';
+    hbs.forEach(function(hb){
+      var row=g[hb]; var wbs=Object.keys(row);
+      h+='<h3 style="margin:10px 0 4px">Высота '+esc(hb)+'″</h3><div class="wrap"><table><thead><tr><th>✓</th><th>Ширина</th><th style="text-align:right">LF Corded</th><th style="text-align:right">LF Cordless</th><th style="text-align:right">Blackout</th><th style="text-align:right">BO Cordless</th></tr></thead><tbody>';
+      wbs.forEach(function(wb){ var c=row[wb];
+        function cell(v){ return '<td style="text-align:right'+(c.offered?'':';opacity:.35')+'">'+(v==null?'—':v.toFixed(2))+'</td>'; }
+        h+='<tr><td><input type="checkbox" '+(c.offered?'checked':'')+' onchange="MA.toggleBand('+c.id+',this.checked)"></td>'
+          +'<td'+(c.offered?'':' style="opacity:.35"')+'>W('+esc(wb)+')</td>'+cell(c.lf_corded)+cell(c.lf_cordless)+cell(c.bo_corded)+cell(c.bo_cordless)+'</tr>';
+      });
+      h+='</tbody></table></div>';
+    });
+    el.innerHTML=h;
+  }catch(e){ el.innerHTML='Ошибка движка: '+esc(e.message||e); }
+};
+MA.toggleBand=async function(id,checked){
+  var r=await sb.from('style_params').update({offered:checked, updated_at:new Date().toISOString()}).eq('id',id);
+  if(r.error){ alert('Ошибка сохранения диапазона: '+r.error.message); return; }
+  if(typeof dbStatus==='function')dbStatus('ok', checked?'✓ бэнд включён в диапазон':'бэнд исключён из диапазона');
+  MA.renderGrid();
+};
+
+/* --- Сохранение / статус --- */
+MA.save=async function(){
+  MA.readFields();
+  var m=MA.m;
+  var row={style_id:MA.styleId, fabric_id:m.fabric_id, status:m.status||'draft', texts:m.texts||{}, photoset:m.photoset||[], note:m.note||null, updated_at:new Date().toISOString()};
+  var r=await sb.from('masters').upsert(row,{onConflict:'style_id'});
+  if(r.error){ alert('Ошибка сохранения: '+r.error.message); return; }
+  if(typeof dbStatus==='function')dbStatus('ok','✓ эталон сохранён');
+  MA.render();
+};
+MA.setStatus=async function(st){
+  MA.readFields();
+  if(st==='master'){
+    if(!MA.checksOk(MA.m)){ alert('Не все проверки лимитов пройдены — смотри ✗ в каналах. Утвердить можно только валидный эталон.'); return; }
+    if(MA.grid)MA.m.price_grid=MA.grid; /* снапшот живой сетки на момент утверждения */
+  }
+  MA.m.status=st;
+  var row={style_id:MA.styleId, fabric_id:MA.m.fabric_id, status:st, texts:MA.m.texts||{}, photoset:MA.m.photoset||[], price_grid:MA.m.price_grid||null, updated_at:new Date().toISOString()};
+  var r=await sb.from('masters').upsert(row,{onConflict:'style_id'});
+  if(r.error){ alert('Ошибка: '+r.error.message); return; }
+  if(typeof dbStatus==='function')dbStatus('ok', st==='master'?'✅ эталон утверждён':'↩ возвращён в черновик');
+  MA.render();
+};
+
+/* --- Preview --- */
+MA.preview=function(ch){
+  MA.readFields();
+  ch=ch||MA.ch;
+  var tabs=byId('maPrevTabs'); tabs.innerHTML='';
+  CHANNELS.forEach(function(c){
+    var b=document.createElement('button'); b.className='mini'+(c[0]===ch?' on':''); b.textContent=c[1];
+    b.onclick=function(){ MA.preview(c[0]); }; tabs.appendChild(b);
+  });
+  byId('maPrevBody').innerHTML=MA.previewHtml(ch,(MA.m.texts||{})[ch]||{},MA.psUrls(MA.m.photoset),MA.grid);
+  byId('maPreview').classList.remove('hidden');
+};
+/* --- Preview v2: макеты, приближенные к реальным страницам площадок --- */
+function priceStats(grid){
+  if(!grid)return null;
+  var min=Infinity,max=-Infinity,n=0;
+  Object.keys(grid).forEach(function(hb){ Object.keys(grid[hb]).forEach(function(wb){ var c=grid[hb][wb];
+    if(c.offered===false)return;
+    ['lf_corded','lf_cordless','bo_corded','bo_cordless'].forEach(function(k){ if(c[k]!=null){ n++; if(c[k]<min)min=c[k]; if(c[k]>max)max=c[k]; } });
+  });});
+  return n?{min:min,max:max,n:n}:null;
+}
+function gal(ps,max,opts){
+  opts=opts||{};
+  var main=ps[0]?'<img src="'+esc(ps[0])+'" style="width:100%;aspect-ratio:'+(opts.sq?'1/1':'4/3')+';object-fit:cover;border-radius:'+(opts.r||6)+'px;background:'+(opts.bg||'#f3f3f3')+'" onerror="this.style.opacity=.25">'
+    :'<div style="width:100%;aspect-ratio:4/3;border:1px dashed #ccc;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#bbb">hero</div>';
+  var th='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">';
+  for(var i=1;i<max;i++){
+    th+= ps[i]?'<img src="'+esc(ps[i])+'" style="width:46px;height:46px;object-fit:cover;border-radius:4px" loading="lazy" onerror="this.style.opacity=.25">'
+      :'<div style="width:46px;height:46px;border:1px dashed #ddd;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:9px">'+(i+1)+'</div>';
+  }
+  return main+th+'</div>';
+}
+function selBox(label,options){
+  return '<div style="margin:7px 0"><div style="font-size:12px;font-weight:600;margin-bottom:3px">'+esc(label)+'</div>'
+    +'<div style="border:1px solid #999;border-radius:8px;padding:8px 10px;font-size:13px;display:flex;justify-content:space-between;color:#444"><span>'+esc(options)+'</span><span>▾</span></div></div>';
+}
+MA.previewHtml=function(ch,t,ps,grid){
+  var checks=MA.checkChannel(ch,t);
+  var h='<div class="sub" style="margin-bottom:10px;padding:6px 8px;background:#f4f2ec;border-radius:6px">'+checks.map(function(x){return '<span style="margin-right:12px;color:'+(x.ok?'#2e7d32':'#c62828')+'">'+(x.ok?'✓':'✗')+' '+esc(x.label)+'</span>';}).join('')+'</div>';
+  var st=priceStats(grid), from=st?st.min.toFixed(2):null;
+  var sizes='W 0–22 … 83+ ″ × H 0–52 … 73–82 ″';
+  var descBox='<div style="white-space:pre-wrap;font-size:13.5px;line-height:1.5;color:#222;max-height:300px;overflow:auto;margin-top:8px">'+esc(t.description||'')+'</div>';
+
+  if(ch==='etsy_loganova'||ch==='etsy_aspect'){
+    var shop=(ch==='etsy_loganova')?['LOGANOVA','5.0 ★ (99)']:['AspectCreativeAgency','4.9 ★ (2 040)'];
+    h+='<div style="font-family:Georgia,serif;background:#fff;border:1px solid #e5e0d8;border-radius:10px;padding:16px">';
+    h+='<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px">';
+    h+='<div>'+gal(ps,GALMAX[ch])+'</div>';
+    h+='<div style="font-family:system-ui,Arial,sans-serif">';
+    h+='<div style="color:#595959;font-size:12px;margin-bottom:4px">'+esc(shop[0])+' · '+shop[1]+' · <span style="color:#2f466c">Star Seller</span></div>';
+    h+=(from?'<div style="font-size:26px;font-weight:700">CA$'+from+'+</div>':'');
+    h+='<div style="font-size:15px;color:#222;margin:6px 0 2px;line-height:1.35">'+esc(t.title||'(нет title)')+'</div>';
+    h+='<div style="color:#595959;font-size:12px;margin-bottom:8px">✓ Handmade · ✓ Made to order · Ships from Canada</div>';
+    h+=selBox('Size (W×H band)',sizes);
+    h+=selBox('Lining','Light filtering / Blackout lining');
+    h+='<div style="margin:7px 0"><div style="font-size:12px;font-weight:600;margin-bottom:3px">Personalization (required)</div><div style="border:1px solid #999;border-radius:8px;padding:8px 10px;font-size:12px;color:#888">Enter exact width and height (inches), mount and colour…</div></div>';
+    h+='<div style="background:#222;color:#fff;border-radius:22px;text-align:center;padding:11px;font-weight:600;margin-top:10px">Add to basket</div>';
+    h+='</div></div>';
+    h+='<div style="font-family:system-ui,Arial,sans-serif;margin-top:14px;border-top:1px solid #eee;padding-top:10px"><b style="font-size:14px">Item details</b>'+descBox+'</div>';
+    h+='<div style="font-family:system-ui,Arial,sans-serif;margin-top:12px"><b style="font-size:13px">Explore related searches</b><div style="margin-top:6px">'
+      +(t.tags||[]).map(function(x){return '<span style="display:inline-block;border:1px solid #ccc;border-radius:16px;padding:4px 12px;margin:3px;font-size:12px;color:#333">'+esc(x)+'</span>';}).join('')+'</div></div>';
+    h+='</div>';
+    h+='<div class="sub" style="margin-top:8px">Google-сниппет (первые 160 симв. описания): <i>'+esc((t.description||'').slice(0,160))+'…</i></div>';
+  }else if(ch==='shopify'){
+    h+='<div style="font-family:system-ui,Arial,sans-serif;background:#fff;border:1px solid #e5e0d8;border-radius:10px;padding:16px">';
+    h+='<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px">';
+    h+='<div>'+gal(ps,10,{sq:1})+'</div>';
+    h+='<div>';
+    h+='<div style="color:#8a8a8a;font-size:11px;letter-spacing:.08em;text-transform:uppercase">LOGANOVA Shades</div>';
+    h+='<h2 style="margin:4px 0;font-size:22px;font-weight:600;line-height:1.25">'+esc(t.h1||'(нет H1)')+'</h2>';
+    h+=(from?'<div style="font-size:18px;margin:6px 0">From CA$'+from+' <span style="color:#8a8a8a;font-size:12px">Shop Pay / Affirm available</span></div>':'');
+    h+='<div style="margin:8px 0"><div style="font-size:12px;font-weight:600;margin-bottom:3px">Exact size (we do the deductions)</div><div style="display:flex;gap:8px"><div style="flex:1;border:1px solid #999;border-radius:6px;padding:8px 10px;color:#888;font-size:13px">Width, in (e.g. 34 1/8)</div><div style="flex:1;border:1px solid #999;border-radius:6px;padding:8px 10px;color:#888;font-size:13px">Height, in</div></div></div>';
+    h+=selBox('Lining','Light filtering / Blackout');
+    h+=selBox('Control','Corded — child-safe channel / Cordless / Motorized');
+    h+='<div style="background:#1f2a24;color:#fff;border-radius:6px;text-align:center;padding:12px;font-weight:600;margin-top:10px">Add to cart</div>';
+    h+='<div style="color:#8a8a8a;font-size:12px;margin-top:8px">✓ Sewn to 1/8″ · ✓ Ships in ≤10 days · ✓ Free swatches</div>';
+    h+='</div></div>';
+    h+='<div style="margin-top:14px;border-top:1px solid #eee;padding-top:10px">'+descBox+'</div>';
+    h+='</div>';
+    h+='<div class="sub" style="margin-top:10px">SERP-сниппет:</div><div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;font-family:Arial,sans-serif"><div style="color:#202124;font-size:12px">loganovashades.com</div><div style="color:#1a0dab;font-size:17px;margin:2px 0">'+esc(t.meta_title||'')+'</div><div style="color:#4d5156;font-size:13px">'+esc(t.meta_desc||'')+'</div></div>';
+  }else{ /* amazon */
+    h+='<div style="font-family:Arial,Helvetica,sans-serif;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px">';
+    h+='<div style="display:grid;grid-template-columns:1fr 1.3fr .8fr;gap:14px">';
+    h+='<div>'+gal(ps,GALMAX[ch],{sq:1,bg:'#fff',r:2})+'<div style="font-size:10px;color:#c45500;margin-top:4px">MAIN: чисто-белый фон 2000×2000, товар ≥85% (канон A3)</div></div>';
+    h+='<div>';
+    h+='<div style="font-size:16px;line-height:1.3;color:#0f1111">'+esc(t.title||'(нет title)')+'</div>';
+    h+='<div style="color:#007185;font-size:12px;margin:3px 0">Brand: LOGANOVA Shades</div>';
+    h+='<div style="color:#de7921;font-size:12px">★★★★★ <span style="color:#007185">Handmade</span></div>';
+    h+='<div style="border-top:1px solid #e7e7e7;margin:8px 0;padding-top:8px"><b style="font-size:13px">About this item</b><ul style="padding-left:18px;margin:6px 0">'
+      +(t.bullets||[]).map(function(b){return '<li style="font-size:12.5px;margin:5px 0;line-height:1.4">'+esc(b)+'</li>';}).join('')+'</ul></div>';
+    h+='</div>';
+    h+='<div style="border:1px solid #d5d9d9;border-radius:8px;padding:12px;height:fit-content">';
+    h+=(from?'<div style="font-size:21px;color:#0f1111">CA$'+from+'<span style="font-size:12px">+</span></div>':'');
+    h+='<div style="font-size:12px;color:#007185;margin:4px 0">FREE delivery · duty-free (CUSMA)</div>';
+    h+='<div style="font-size:12px;color:#007600;margin:4px 0">Made to order · ships in ≤10 days</div>';
+    h+='<div style="background:#ffd814;border-radius:18px;text-align:center;padding:8px;font-size:13px;margin-top:8px">Add to Cart</div>';
+    h+='<div style="background:#ffa41c;border-radius:18px;text-align:center;padding:8px;font-size:13px;margin-top:6px">Buy Now</div>';
+    h+='</div></div>';
+    h+='<div style="margin-top:12px;border-top:1px solid #e7e7e7;padding-top:8px"><b style="font-size:13px">Product Description</b>'+descBox+'</div>';
+    h+='</div>';
+    h+='<div class="sub" style="margin-top:8px">Backend search terms (служебное, покупатель не видит · '+bytes(t.search_terms)+'/249 байт): <i>'+esc(t.search_terms||'')+'</i></div>';
+  }
+  /* вариации Size×Lining из живой сетки */
+  if(grid){
+    var hbs=Object.keys(grid);
+    h+='<h3 style="margin:14px 0 4px">Вариации Size × Lining (LF Corded, CAD)</h3><div class="wrap"><table><thead><tr><th>Ширина \\ Высота</th>';
+    hbs.forEach(function(hb){ h+='<th style="text-align:right">'+esc(hb)+'″</th>'; }); h+='</tr></thead><tbody>';
+    var wbs=Object.keys(grid[hbs[0]]);
+    wbs.forEach(function(wb){
+      h+='<tr><td>W('+esc(wb)+')</td>';
+      hbs.forEach(function(hb){ var c=grid[hb][wb]; h+='<td style="text-align:right">'+((c&&c.offered!==false)?c.lf_corded.toFixed(2):'—')+'</td>'; });
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    if(st)h+='<p class="sub">Диапазон по '+st.n+' ценам утверждённых бэндов: '+st.min.toFixed(2)+' – '+st.max.toFixed(2)+' CAD</p>';
+  }else{
+    h+='<p class="sub">Сетка цен не загружена — выбери эталонную ткань на карточке.</p>';
+  }
+  return h;
+};
+
+/* --- Вкладка (wrap showView, как Свотчи) --- */
+if(typeof showView==='function'){
+  var _sv=showView;
+  window.showView=function(v){
+    _sv(v);
+    var s=byId('view-masters'); if(s)s.classList.toggle('hidden',v!=='masters');
+    var t=byId('tab-masters'); if(t)t.className=(v==='masters'?'primary':'');
+    if(v==='masters')MA.render();
+  };
+}
+window.MA=MA;
+})();
+</script>
+<script>
+/* ===== NEW LISTING TAB «Новый листинг» (Фаза 4 · 2026-07-10) =====
+   Поток: эталон × ткань × трим → подстановка в listing_templates (детерминированно) →
+   цены PriceEngine → SKU/вариации → Preview (переиспользует MA.previewHtml/checkChannel) →
+   сохранение в listings со снапшотом цен → экспорты 4 каналов в CAD (решение N 2026-07-10). */
+(function(){
+var NL={masters:[],styles:[],fabrics:[],trims:[],tpls:[],colors:[],settings:{},
+  styleId:null,fabricId:null,trimId:null,material:'Faux Linen',hero:'',roll:120,
+  modelNote:'',photoset:[],texts:null,grid:null,ch:'etsy_loganova',saved:null};
+var CHANNELS=[['etsy_loganova','Etsy · LOGANOVA'],['etsy_aspect','Etsy · Aspect'],['shopify','Shopify'],['amazon_handmade','Amazon Handmade']];
+var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function byId(id){return document.getElementById(id);}
+var slug=function(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]+/g,'').slice(0,14)||'FABRIC';}; /* как в Pillar */
+var bandCode=function(s){return String(s).replace(/-/g,'');};
+var r2=function(n){return Math.round(n*100)/100;};
+
+/* --- Подстановка плейсхолдеров (детерминированная) --- */
+NL.subst=function(s,ctx){
+  return String(s==null?'':s).replace(/\{(fabric_lower|fabric|material_lower|material_upper|material|hero_color|colours_count|colours|roll|style)\}/g,
+    function(_,k){ return ctx[k]!=null?String(ctx[k]):'{'+k+'}'; });
+};
+NL.ctx=function(){
+  var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;})||{};
+  var s=NL.styles.find(function(x){return x.id===NL.styleId;})||{};
+  var names=NL.colors.map(function(c){return c.color_name;});
+  return { fabric:f.name||'', fabric_lower:(f.name||'').toLowerCase(),
+    material:NL.material||'', material_lower:(NL.material||'').toLowerCase(), material_upper:(NL.material||'').toUpperCase(),
+    hero_color:NL.hero||names[0]||'', colours_count:names.length, colours:names.join(', '),
+    roll:NL.roll, style:s.name||'' };
+};
+NL.buildTexts=function(){
+  var ctx=NL.ctx(), out={};
+  NL.tpls.forEach(function(tp){
+    var t={};
+    var extra={}; try{ extra=JSON.parse(tp.note||'{}'); }catch(e){}
+    if(tp.channel==='shopify'){
+      t.h1=NL.subst(extra.h1||tp.title_tpl,ctx); t.meta_title=NL.subst(extra.meta_title||'',ctx); t.meta_desc=NL.subst(extra.meta_desc||'',ctx);
+    }else{ t.title=NL.subst(tp.title_tpl,ctx); }
+    t.description=NL.subst(tp.description_tpl,ctx);
+    var tags=(tp.tags||[]).map(function(x){return NL.subst(x,ctx).toLowerCase();});
+    if(tags.length)t.tags=tags;
+    var bl=(tp.bullets||[]).map(function(x){return NL.subst(x,ctx);});
+    if(bl.length)t.bullets=bl;
+    if(extra.search_terms)t.search_terms=NL.subst(extra.search_terms,ctx);
+    if(NL.modelNote&&t.description)t.description=t.description.replace('WHY THIS SHADE\n','WHY THIS SHADE\n'+NL.modelNote+'\n');
+    /* ром (дизайн отделки): развёрнутое описание из справочника «Ромы» — секцией перед FIT */
+    var rom=NL.trims.find(function(x){return x.id===NL.trimId;});
+    if(rom&&rom.description&&t.description){
+      t.description=t.description.replace('FIT — WE DO THE MATH\n',
+        'DESIGN DETAIL — '+(rom.code||'')+'\n'+rom.description+'\n\nFIT — WE DO THE MATH\n');
+    }
+    out[tp.channel]=t;
+  });
+  return out;
+};
+
+/* --- Данные --- */
+NL.render=async function(){
+  var body=byId('nlBody');
+  if(!window.sb){ body.innerHTML='<p class="sub">Сначала войди в базу.</p>'; return; }
+  var res=await Promise.all([
+    sb.from('masters').select('*'),
+    sb.from('styles').select('id,code,name').order('sort_order'),
+    sb.from('fabrics').select('id,name,base_price,roll_width').eq('is_deleted',false).order('name'),
+    sb.from('trims').select('id,code,description,price').order('code'),
+    sb.from('listing_templates').select('*'),
+    sb.from('app_settings').select('key,value')
+  ]);
+  for(var i=0;i<6;i++){ if(res[i].error){ body.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
+  NL.masters=res[0].data||[]; NL.styles=res[1].data||[]; NL.fabrics=res[2].data||[];
+  NL.trims=res[3].data||[]; NL.allTpls=res[4].data||[];
+  NL.settings={}; (res[5].data||[]).forEach(function(x){NL.settings[x.key]=x.value;});
+  NL.pick();
+};
+NL.pick=function(){
+  var h='';
+  h+='<div><div class="fldlab">Стиль</div><select id="nlStyle" onchange="NL.setStyle(this.value)"><option value="">—</option>';
+  NL.styles.forEach(function(s){
+    var m=NL.masters.find(function(x){return x.style_id===s.id;});
+    var mark=m?(m.status==='master'?' ✅ эталон':' ✏️ черновик эталона'):' — нет эталона';
+    h+='<option value="'+s.id+'"'+(NL.styleId===s.id?' selected':'')+'>'+esc(s.name||s.id)+mark+'</option>';
+  });
+  h+='</select></div>';
+  h+='<div><div class="fldlab">Ткань</div><select id="nlFab" onchange="NL.setFab(this.value)"><option value="">—</option>';
+  NL.fabrics.forEach(function(f){ h+='<option value="'+f.id+'"'+(NL.fabricId===f.id?' selected':'')+'>'+esc(f.name)+' · '+(f.base_price||'?')+' CAD/ярд · '+(f.roll_width||'?')+'″</option>'; });
+  h+='</select></div>';
+  h+='<div><div class="fldlab">Ром — дизайн отделки (опционально)</div><select id="nlTrim" onchange="NL.setTrim(this.value)"><option value="">без рома</option>';
+  NL.trims.forEach(function(t){ h+='<option value="'+t.id+'"'+(NL.trimId===t.id?' selected':'')+'>'+esc(t.code||'')+' '+esc((t.description||'').slice(0,30))+'</option>'; });
+  h+='</select></div>';
+  h+='<div><div class="fldlab">Материал (для текстов)</div><select id="nlMat" onchange="NL.setMat(this.value)">';
+  ['Faux Linen','Linen','Cotton','Velvet','Sheer'].forEach(function(m){ h+='<option'+(NL.material===m?' selected':'')+'>'+m+'</option>'; });
+  h+='</select></div>';
+  h+='<div style="flex-basis:100%"><div class="fldlab">Описание модели от Натальи (войдёт в описание листинга, блок WHY THIS SHADE)</div>'
+    +'<textarea id="nlNote" rows="3" style="width:100%" placeholder="Например: особенность кроя, ручная отделка края, чем эта модель отличается…" onchange="NL.setNote(this.value)">'+esc(NL.modelNote||'')+'</textarea></div>';
+  byId('nlPick').innerHTML=h;
+};
+NL.setNote=function(v){ NL.modelNote=(v||'').trim(); NL.texts=null; NL.build(); };
+NL.setStyle=function(v){ NL.styleId=v?Number(v):null; NL.texts=null; NL.build(); };
+NL.setFab=async function(v){
+  NL.fabricId=v?Number(v):null; NL.texts=null;
+  if(NL.fabricId){
+    var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;});
+    NL.roll=(f&&f.roll_width)||120;
+    var r=await sb.from('fabric_colors').select('color_name,color_code,status').eq('fabric_id',NL.fabricId).order('sort_order');
+    NL.colors=(r.data||[]); NL.hero=(NL.colors[0]||{}).color_name||'';
+  }else{ NL.colors=[]; NL.hero=''; }
+  NL.build();
+};
+NL.setTrim=function(v){ NL.trimId=v?Number(v):null; NL.texts=null; NL.build(); };
+NL.setMat=function(v){ NL.material=v||'Faux Linen'; NL.texts=null; NL.build(); };
+
+/* --- Сборка --- */
+NL.build=async function(){
+  var body=byId('nlBody'); NL.pick();
+  if(!NL.styleId||!NL.fabricId){ body.innerHTML='<div class="note">Выбери эталон и ткань…</div>'; return; }
+  var m=NL.masters.find(function(x){return x.style_id===NL.styleId;})||{};
+  NL.tpls=NL.allTpls.filter(function(t){return t.style_id===NL.styleId;});
+  var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;});
+  if(!NL.tpls.length){ body.innerHTML='<div class="note">Для стиля нет шаблонов в listing_templates — собери эталон в «Эталонах».</div>'; return; }
+  if(!NL.texts)NL.texts=NL.buildTexts();
+  try{ NL.grid=await PriceEngine.gridFromDB(sb, NL.styleId, NL.roll, Number(f.base_price)); }
+  catch(e){ body.innerHTML='<div class="note">Движок цен: '+esc(e.message||e)+'</div>'; return; }
+  var warn=[];
+  if(m.status!=='master')warn.push('эталон стиля ещё черновик — утверди в «Эталонах»');
+  if(!NL.colors.length)warn.push('у ткани нет цветов в базе свотчей — {colours} пустой');
+  if(!f.base_price)warn.push('у ткани нет цены $/ярд');
+  var trim=NL.trims.find(function(x){return x.id===NL.trimId;});
+  var h='';
+  if(warn.length)h+='<div class="note" style="border-left:4px solid #c8a03c;margin-bottom:10px">⚠ '+warn.map(esc).join(' · ')+'</div>';
+  h+='<div class="lcard" style="padding:14px 16px">';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">';
+  h+='<b style="font-size:16px">'+esc(f.name)+'</b><span class="sub">рулон '+NL.roll+'″ · '+esc(String(f.base_price))+' CAD/ярд'+(trim?' · ром '+esc(trim.code||''):'')+' · цвета: '+NL.colors.length+'</span>';
+  h+='<span style="flex:1"></span>';
+  h+='<button class="mini" onclick="NL.preview()">👁 Preview</button>';
+  h+='<button class="mini on" onclick="NL.save()">💾 Сохранить листинг (снапшот цен)</button>';
+  h+='</div>';
+  h+='<div class="sub" style="margin:6px 0">SKU вариаций: <code>LGN-RFF-'+esc(slug(f.name))+'-W{W}-H{H}-{CTRL}-{LIN}</code>'+(NL.saved?' · <span class="badge b-ok">сохранён: '+esc(NL.saved)+'</span>':'')+'</div>';
+  /* каналы: тексты после подстановки, редактируемые */
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 8px">';
+  CHANNELS.forEach(function(c){ h+='<button class="mini'+(NL.ch===c[0]?' on':'')+'" onclick="NL.setCh(\''+c[0]+'\')">'+esc(c[1])+'</button>'; });
+  h+='</div><div id="nlFields"></div>';
+  /* вариации */
+  /* фото-пакет по канону */
+  h+='<h2 style="margin-top:14px">Фото-пакет листинга ('+MA.psUrls(NL.photoset).length+'/'+MA.SHOTLIST.length+')</h2><div id="nlPhotos"></div>';
+  var v=NL.variants();
+  h+='<h2 style="margin-top:14px">Вариации ('+v.length+') · CAD · только утверждённый диапазон</h2><div class="wrap" style="max-height:260px;overflow:auto"><table><thead><tr><th>SKU</th><th>Size</th><th>Lining</th><th>Control</th><th style="text-align:right">Цена</th></tr></thead><tbody>';
+  v.slice(0,200).forEach(function(x){ h+='<tr><td style="font-family:monospace;font-size:11px">'+esc(x.sku)+'</td><td>W('+esc(x.width)+')×H('+esc(x.height)+')</td><td>'+esc(x.lining)+'</td><td>'+esc(x.control)+'</td><td style="text-align:right">'+x.price_cad.toFixed(2)+'</td></tr>'; });
+  h+='</tbody></table></div>';
+  /* экспорты */
+  h+='<h2 style="margin-top:14px">Экспорты (CAD)</h2><div class="bar" style="flex-wrap:wrap">';
+  h+='<button class="mini" onclick="NL.expEtsy(\'etsy_loganova\')">Etsy LOGANOVA · bulk CSV</button>';
+  h+='<button class="mini" onclick="NL.expEtsy(\'etsy_aspect\')">Etsy Aspect · bulk CSV</button>';
+  h+='<button class="mini" onclick="NL.expShopify()">Shopify · CSV</button>';
+  h+='<button class="mini" onclick="NL.expAmazon()">Amazon · TSV</button>';
+  h+='<button class="mini" onclick="NL.expJson()">Полный JSON</button>';
+  h+='</div>';
+  h+='</div>';
+  body.innerHTML=h; NL.fields(); MA.photoPanel('nlPhotos', NL.photoset, 'NL');
+};
+NL.setShot=function(n,url){
+  NL.photoset=MA.psNorm(NL.photoset);
+  var s=MA.SHOTLIST.find(function(x){return x.n===n;});
+  var p=NL.photoset.find(function(x){return x.n===n;});
+  url=(url||'').trim();
+  if(p){ if(url)p.url=url; else NL.photoset.splice(NL.photoset.indexOf(p),1); }
+  else if(url)NL.photoset.push({n:n,role:s.role,label:s.label,url:url});
+  NL.build();
+};
+NL.setCh=function(c){ NL.readFields(); NL.ch=c; NL.build(); };
+
+/* --- Поля текстов (та же механика, что в Эталонах) --- */
+function T(id,label,val){ return '<div class="fld" style="margin:6px 0"><span class="fldlab">'+label+'</span><input id="'+id+'" style="width:100%" value="'+esc(val||'')+'" oninput="NL.counters()"></div>'; }
+function TA(id,label,val,rows){ return '<div class="fld" style="margin:6px 0;align-items:flex-start"><span class="fldlab">'+label+'</span><textarea id="'+id+'" rows="'+(rows||4)+'" style="width:100%" oninput="NL.counters()">'+esc(val||'')+'</textarea></div>'; }
+NL.fields=function(){
+  var t=(NL.texts||{})[NL.ch]||{}; var h='';
+  if(NL.ch==='etsy_loganova'||NL.ch==='etsy_aspect'){
+    h+=T('nlTitle','Title',t.title); h+=TA('nlTags','13 тегов (через запятую)',(t.tags||[]).join(', '),2); h+=TA('nlDesc','Description',t.description,10);
+  }else if(NL.ch==='shopify'){
+    h+=T('nlH1','H1',t.h1); h+=T('nlMT','Meta title',t.meta_title); h+=T('nlMD','Meta description',t.meta_desc); h+=TA('nlDesc','Body',t.description,10);
+  }else{
+    h+=T('nlTitle','Title',t.title); h+=TA('nlBullets','5 bullets (по одному в строке)',(t.bullets||[]).join('\n'),7); h+=T('nlST','Backend search terms',t.search_terms); h+=TA('nlDesc','Description',t.description,10);
+  }
+  h+='<div id="nlChecks" class="sub" style="margin-top:6px"></div>';
+  byId('nlFields').innerHTML=h; NL.counters();
+};
+NL.readFields=function(){
+  if(!NL.texts)return; var t=NL.texts[NL.ch]=NL.texts[NL.ch]||{};
+  function v(id){ var e=byId(id); return e?e.value:undefined; }
+  if(NL.ch==='etsy_loganova'||NL.ch==='etsy_aspect'){
+    if(byId('nlTitle'))t.title=v('nlTitle');
+    if(byId('nlTags'))t.tags=v('nlTags').split(',').map(function(x){return x.trim().toLowerCase();}).filter(Boolean);
+    if(byId('nlDesc'))t.description=v('nlDesc');
+  }else if(NL.ch==='shopify'){
+    if(byId('nlH1'))t.h1=v('nlH1'); if(byId('nlMT'))t.meta_title=v('nlMT'); if(byId('nlMD'))t.meta_desc=v('nlMD');
+    if(byId('nlDesc'))t.description=v('nlDesc');
+  }else{
+    if(byId('nlTitle'))t.title=v('nlTitle');
+    if(byId('nlBullets'))t.bullets=v('nlBullets').split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    if(byId('nlST'))t.search_terms=v('nlST');
+    if(byId('nlDesc'))t.description=v('nlDesc');
+  }
+};
+NL.counters=function(){
+  NL.readFields();
+  var r=window.MA?MA.checkChannel(NL.ch,(NL.texts||{})[NL.ch]):[];
+  var el=byId('nlChecks'); if(!el)return;
+  el.innerHTML=r.map(function(x){return '<span style="margin-right:12px;color:'+(x.ok?'#2e7d32':'#c62828')+'">'+(x.ok?'✓':'✗')+' '+esc(x.label)+'</span>';}).join('');
+};
+
+/* --- Вариации + SKU (правило Pillar; MT из app_settings) --- */
+NL.variants=function(){
+  if(!NL.grid)return [];
+  var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;})||{};
+  var tok=slug(f.name), motor=Number(NL.settings.motorized_adder_cad||570), out=[];
+  var LINS=[['LF','Light filtering'],['BO','Blackout lining']], CTRLS=[['CH','Corded'],['CL','Cordless'],['MT','Motorized']];
+  Object.keys(NL.grid).forEach(function(hb){ Object.keys(NL.grid[hb]).forEach(function(wb){
+    var c=NL.grid[hb][wb];
+    if(c.offered===false)return; /* вне утверждённого диапазона стиля */
+    LINS.forEach(function(L){ CTRLS.forEach(function(C){
+      var p=null;
+      if(C[0]==='CH')p=(L[0]==='LF')?c.lf_corded:c.bo_corded;
+      else if(C[0]==='CL')p=(L[0]==='LF')?c.lf_cordless:c.bo_cordless;
+      else p=r2(((L[0]==='LF')?c.lf_corded:c.bo_corded)+motor);
+      if(p==null)return; /* Cordless недоступен на размере */
+      out.push({width:wb,height:hb,lining:L[1],linCode:L[0],control:C[1],ctrlCode:C[0],
+        sku:'LGN-RFF-'+tok+'-W'+bandCode(wb)+'-H'+bandCode(hb)+'-'+C[0]+'-'+L[0],price_cad:p});
+    });});
+  });});
+  return out;
+};
+
+/* --- Валидность перед сохранением/экспортом --- */
+NL.invalid=function(){
+  NL.readFields(); var bad=[];
+  CHANNELS.forEach(function(c){ MA.checkChannel(c[0],(NL.texts||{})[c[0]]).forEach(function(x){ if(!x.ok)bad.push(c[1]+': '+x.label); }); });
+  return bad;
+};
+
+/* --- Preview (переиспользуем модал Эталонов) --- */
+NL.preview=function(ch){
+  NL.readFields(); ch=ch||NL.ch;
+  var tabs=byId('maPrevTabs'); tabs.innerHTML='';
+  CHANNELS.forEach(function(c){
+    var b=document.createElement('button'); b.className='mini'+(c[0]===ch?' on':''); b.textContent=c[1];
+    b.onclick=function(){ NL.preview(c[0]); }; tabs.appendChild(b);
+  });
+  byId('maPrevBody').innerHTML=MA.previewHtml(ch,(NL.texts||{})[ch]||{},MA.psUrls(NL.photoset),NL.grid);
+  byId('maPreview').classList.remove('hidden');
+};
+
+/* --- Сохранение со снапшотом цен --- */
+NL.save=async function(){
+  var bad=NL.invalid();
+  if(bad.length){ alert('Лимиты не пройдены:\n— '+bad.slice(0,8).join('\n— ')); return; }
+  var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;});
+  var id='hub-'+slug(f.name).toLowerCase()+'-'+Date.now();
+  var tx=Object.assign({}, NL.texts, {_meta:{material:NL.material, model_note:NL.modelNote||null, hero_color:NL.hero||null}});
+  var row={ id:id, title:(NL.texts.etsy_loganova||{}).title||'', style_id:NL.styleId, fabric_id:NL.fabricId,
+    trim_id:NL.trimId||null, sku:'RS-RL-'+slug(f.name)+'-CL', category:'Roman Shades', source:'hub',
+    note:'Создан конструктором хаба '+new Date().toISOString().slice(0,10),
+    texts:tx, price_grid:{roll:NL.roll, rate_cad_yd:Number(f.base_price), grid:NL.grid, snapped_at:new Date().toISOString()},
+    photoset:NL.photoset||[] };
+  var r=await sb.from('listings').insert(row);
+  if(r.error){ alert('Ошибка сохранения: '+r.error.message); return; }
+  NL.saved=id;
+  if(typeof dbStatus==='function')dbStatus('ok','✓ листинг сохранён со снапшотом цен: '+id);
+  if(typeof bootFromDB==='function'){ try{ await bootFromDB(); showView('newlisting'); }catch(e){} }
+  NL.build();
+};
+
+/* --- Экспорты (CAD) --- */
+function csvCell(s){ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+function dl(name,content,mime){
+  var b=new Blob([content],{type:mime||'text/plain;charset=utf-8'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+NL.gate=function(chs){
+  NL.readFields(); var bad=[];
+  chs.forEach(function(ch){ MA.checkChannel(ch,(NL.texts||{})[ch]).forEach(function(x){ if(!x.ok)bad.push(x.label); }); });
+  if(bad.length){ alert('Экспорт заблокирован лимитами:\n— '+bad.join('\n— ')); return false; }
+  return true;
+};
+NL.fileBase=function(){ var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;})||{}; return 'LGN-RFF-'+slug(f.name); };
+NL.expEtsy=function(ch){
+  if(!NL.gate([ch]))return;
+  var t=NL.texts[ch], v=NL.variants(), ctx=NL.ctx();
+  var head=['Title','Description','Price CAD','Quantity','Tags','Materials','SKU','Who Made','When Made','Category','Variation 1 Type','Variation 1 Value','Variation 2 Type','Variation 2 Value','Variation 3 Type','Variation 3 Value','Colours'];
+  var rows=[head.join(',')];
+  v.forEach(function(x,i){
+    rows.push([ i===0?t.title:'', i===0?t.description:'', x.price_cad.toFixed(2), 999,
+      i===0?(t.tags||[]).join('|'):'', i===0?ctx.material:'', x.sku, 'i_did','made_to_order','Window Blinds & Shades',
+      'Size','W('+x.width+') × H('+x.height+')','Lining',x.lining,'Control',x.control, i===0?ctx.colours.split(', ').join('|'):'' ].map(csvCell).join(','));
+  });
+  dl(NL.fileBase()+'-'+ch+'-bulk.csv',rows.join('\n'),'text/csv');
+};
+NL.expShopify=function(){
+  if(!NL.gate(['shopify']))return;
+  var t=NL.texts.shopify, v=NL.variants(), ctx=NL.ctx();
+  var handle=(ctx.fabric_lower+'-relaxed-roman-shade').replace(/[^a-z0-9]+/g,'-');
+  var head=['Handle','Title','Body (HTML)','Vendor','Type','Tags','Published','Option1 Name','Option1 Value','Option2 Name','Option2 Value','Option3 Name','Option3 Value','Variant SKU','Variant Price','Variant Inventory Policy','Variant Fulfillment Service','SEO Title','SEO Description'];
+  var rows=[head.join(',')];
+  v.forEach(function(x,i){
+    rows.push([ handle, i===0?t.h1:'', i===0?'<p>'+t.description.replace(/\n/g,'<br>')+'</p>':'', 'LOGANOVA Shades', 'Roman Shade',
+      i===0?'roman shade, custom, '+ctx.fabric_lower:'', i===0?'FALSE':'',
+      'Size','W('+x.width+') × H('+x.height+')','Lining',x.lining,'Control',x.control,
+      x.sku, x.price_cad.toFixed(2), 'continue','manual', i===0?t.meta_title:'', i===0?t.meta_desc:'' ].map(csvCell).join(','));
+  });
+  dl(NL.fileBase()+'-shopify.csv',rows.join('\n'),'text/csv');
+};
+NL.expAmazon=function(){
+  if(!NL.gate(['amazon_handmade']))return;
+  var t=NL.texts.amazon_handmade, v=NL.variants();
+  var head=['item_sku','item_name','brand_name','bullet_point1','bullet_point2','bullet_point3','bullet_point4','bullet_point5','generic_keywords','product_description','standard_price','currency','quantity','size_name','color_name'];
+  var rows=[head.join('\t')];
+  v.forEach(function(x,i){
+    var b=t.bullets||[];
+    rows.push([ x.sku, i===0?t.title:t.title+' — W('+x.width+')×H('+x.height+') '+x.lining+' '+x.control, 'LOGANOVA Shades',
+      b[0]||'',b[1]||'',b[2]||'',b[3]||'',b[4]||'', t.search_terms||'', i===0?(t.description||'').replace(/\t/g,' ').replace(/\n/g,' | '):'',
+      x.price_cad.toFixed(2),'CAD',999,'W('+x.width+') × H('+x.height+')',x.lining+' / '+x.control ].join('\t'));
+  });
+  dl(NL.fileBase()+'-amazon.tsv',rows.join('\n'),'text/tab-separated-values');
+};
+NL.expJson=function(){
+  NL.readFields();
+  var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;})||{};
+  dl(NL.fileBase()+'-listing.json', JSON.stringify({
+    style_id:NL.styleId, fabric:{id:f.id,name:f.name,rate_cad_yd:f.base_price,roll:NL.roll},
+    trim_id:NL.trimId, material:NL.material, colours:NL.colors.map(function(c){return c.color_name;}),
+    texts:NL.texts, variants:NL.variants(), currency:'CAD', generated_at:new Date().toISOString()
+  },null,2),'application/json');
+};
+
+/* --- Вкладка --- */
+if(typeof showView==='function'){
+  var _sv=showView;
+  window.showView=function(v){
+    _sv(v);
+    var s=byId('view-newlisting'); if(s)s.classList.toggle('hidden',v!=='newlisting');
+    var t=byId('tab-newlisting'); if(t)t.className=(v==='newlisting'?'primary':'');
+    if(v==='newlisting')NL.render();
+  };
+}
+window.NL=NL;
+})();
+</script>
+<script>
+/* ===== MEDIA TAB «Медиа» + полный бэкап (Фаза 5 · 2026-07-10) =====
+   Библиотека Storage (media + swatches) с привязками через таблицу media;
+   бэкап: все таблицы (пагинация 1000) + все файлы Storage → один zip (JSZip). */
+(function(){
+var MD={files:[],rows:[],fabrics:[],listings:[]};
+var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function byId(id){return document.getElementById(id);}
+var BUCKETS=['media','swatches'];
+/* полный перечень таблиц хаба для бэкапа */
+var TABLES=['styles','trims','deco_trims','fabrics','fabric_colors','fabric_palettes','trim_colors','trim_palettes',
+  'pricing','listings','sku_registry','channel_match','aspect_price_points','snapshots','event_log','app_allowlist',
+  'style_params','listing_templates','masters','media','app_settings'];
+
+/* --- рекурсивный обход бакета --- */
+MD.walk=async function(bucket,prefix){
+  var out=[];
+  var r=await sb.storage.from(bucket).list(prefix||'',{limit:1000});
+  if(r.error)return out;
+  for(var i=0;i<r.data.length;i++){
+    var it=r.data[i], path=(prefix?prefix+'/':'')+it.name;
+    if(it.id)out.push({bucket:bucket,path:path,size:(it.metadata&&it.metadata.size)||0});
+    else out=out.concat(await MD.walk(bucket,path)); /* папка */
+  }
+  return out;
+};
+
+MD.render=async function(){
+  var g=byId('mdGrid');
+  if(!window.sb){ g.innerHTML='<p class="sub">Сначала войди в базу.</p>'; return; }
+  g.innerHTML='загрузка…';
+  var res=await Promise.all([
+    sb.from('media').select('*'),
+    sb.from('fabrics').select('id,name').eq('is_deleted',false).order('name'),
+    sb.from('listings').select('id,title').order('title').limit(1000)
+  ]);
+  MD.rows=(res[0].data)||[]; MD.fabrics=(res[1].data)||[]; MD.listings=(res[2].data)||[];
+  MD.files=[];
+  for(var b=0;b<BUCKETS.length;b++)MD.files=MD.files.concat(await MD.walk(BUCKETS[b],''));
+  var h='<p class="sub">Файлов: '+MD.files.length+' (media + swatches) · привязок в таблице media: '+MD.rows.length+'</p>';
+  BUCKETS.forEach(function(bk){
+    var fl=MD.files.filter(function(f){return f.bucket===bk;});
+    h+='<h2 style="margin-top:12px">'+bk+' · '+fl.length+'</h2><div style="display:flex;gap:10px;flex-wrap:wrap">';
+    fl.forEach(function(f,idx){
+      var url=sb.storage.from(f.bucket).getPublicUrl(f.path).data.publicUrl;
+      var row=MD.rows.find(function(x){return x.storage_path===f.path;});
+      var fab=row&&row.fabric_id?(MD.fabrics.find(function(x){return x.id===row.fabric_id;})||{}).name:null;
+      h+='<div class="lcard" style="width:150px;padding:8px">'
+        +'<img src="'+esc(url)+'" style="width:100%;height:100px;object-fit:cover;border-radius:6px" loading="lazy" onerror="this.style.opacity=.2">'
+        +'<div class="sub" style="word-break:break-all;font-size:10px;margin:4px 0">'+esc(f.path)+'</div>'
+        +(fab?'<div class="badge b-ok" style="margin-bottom:4px">ткань: '+esc(fab)+'</div>':'')
+        +(row&&row.listing_id?'<div class="badge b-mut" style="margin-bottom:4px">листинг</div>':'')
+        +'<div style="display:flex;gap:4px;flex-wrap:wrap">'
+        +'<button class="mini" onclick="MD.link(\''+esc(f.bucket)+'\',\''+esc(f.path)+'\')">🔗 привязать</button>'
+        +'<button class="mini del" onclick="MD.del(\''+esc(f.bucket)+'\',\''+esc(f.path)+'\')">🗑</button>'
+        +'</div></div>';
+    });
+    h+='</div>';
+  });
+  g.innerHTML=h;
+};
+
+MD.link=async function(bucket,path){
+  var names=MD.fabrics.map(function(f){return f.id+': '+f.name;}).join('\n');
+  var fid=window.prompt('Привязать к ткани — введи id (пусто = снять привязку):\n'+names.slice(0,1200),'');
+  if(fid===null)return;
+  var url=sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  var row=MD.rows.find(function(x){return x.storage_path===path;});
+  var payload={storage_path:path,url:url,kind:bucket==='swatches'?'swatch':'listing_photo',fabric_id:fid?Number(fid):null};
+  var r = row ? await sb.from('media').update(payload).eq('id',row.id) : await sb.from('media').insert(payload);
+  if(r.error){ alert('Ошибка: '+r.error.message); return; }
+  MD.render();
+};
+MD.del=async function(bucket,path){
+  if(!confirm('Удалить файл '+path+' из Storage? Действие необратимо.'))return;
+  var r=await sb.storage.from(bucket).remove([path]);
+  if(r.error){ alert('Ошибка: '+r.error.message); return; }
+  var row=MD.rows.find(function(x){return x.storage_path===path;});
+  if(row)await sb.from('media').delete().eq('id',row.id);
+  MD.render();
+};
+
+/* --- ПОЛНЫЙ БЭКАП: все таблицы + все файлы Storage → zip --- */
+MD.fetchAll=async function(table){
+  var out=[], page=0, PAGE=1000;
+  for(;;){
+    var r=await sb.from(table).select('*').range(page*PAGE,(page+1)*PAGE-1);
+    if(r.error)throw new Error(table+': '+r.error.message);
+    out=out.concat(r.data||[]);
+    if(!r.data||r.data.length<PAGE)break;
+    page++;
+  }
+  return out;
+};
+MD.backup=async function(){
+  var msg=byId('mdBackupMsg');
+  if(typeof JSZip==='undefined'){ msg.textContent='JSZip не загрузился (нужен интернет)'; return; }
+  try{
+    var zip=new JSZip(), manifest={created_at:new Date().toISOString(), tables:{}, files:{}, buckets:{}};
+    for(var i=0;i<TABLES.length;i++){
+      msg.textContent='таблица '+(i+1)+'/'+TABLES.length+': '+TABLES[i]+'…';
+      var rows=await MD.fetchAll(TABLES[i]);
+      manifest.tables[TABLES[i]]=rows.length;
+      zip.file('tables/'+TABLES[i]+'.json', JSON.stringify(rows,null,1));
+    }
+    var files=[];
+    for(var b=0;b<BUCKETS.length;b++)files=files.concat(await MD.walk(BUCKETS[b],''));
+    for(var j=0;j<files.length;j++){
+      var f=files[j];
+      msg.textContent='файл '+(j+1)+'/'+files.length+': '+f.path+'…';
+      var d=await sb.storage.from(f.bucket).download(f.path);
+      if(d.error){ manifest.files[f.bucket+'/'+f.path]='ОШИБКА: '+d.error.message; continue; }
+      zip.file('storage/'+f.bucket+'/'+f.path, d.data);
+      manifest.buckets[f.bucket]=(manifest.buckets[f.bucket]||0)+1;
+    }
+    zip.file('manifest.json', JSON.stringify(manifest,null,1));
+    msg.textContent='собираю архив…';
+    var blob=await zip.generateAsync({type:'blob'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='LOGANOVA_hub_backup_'+new Date().toISOString().slice(0,10)+'.zip';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+    var tt=0; Object.keys(manifest.tables).forEach(function(k){tt+=manifest.tables[k];});
+    msg.textContent='✓ бэкап скачан: '+Object.keys(manifest.tables).length+' таблиц ('+tt+' записей), '
+      +files.length+' файлов Storage. Состав — в manifest.json внутри архива.';
+  }catch(e){ msg.textContent='✗ '+(e.message||e); }
+};
+
+/* --- Вкладка --- */
+if(typeof showView==='function'){
+  var _sv=showView;
+  window.showView=function(v){
+    _sv(v);
+    var s=byId('view-media'); if(s)s.classList.toggle('hidden',v!=='media');
+    var t=byId('tab-media'); if(t)t.className=(v==='media'?'primary':'');
+    if(v==='media')MD.render();
+  };
+}
+window.MD=MD;
 })();
 </script>
 </body>
