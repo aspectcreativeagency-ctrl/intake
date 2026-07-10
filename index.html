@@ -1341,9 +1341,10 @@ function fillGridFilters(){ var fs=document.getElementById('gridFab'); if(!fs) r
 async function loadGrid(){ if(!sb) return; var fs=document.getElementById('gridFab'); var host=document.getElementById('gridWrap'); var cnt=document.getElementById('gridCount');
   var fid=fs?fs.value:''; if(!fid){ host.innerHTML='<p class="sub">Выберите ткань — покажу её ценовые точки.</p>'; if(cnt)cnt.textContent=''; return; }
   host.innerHTML='<p class="sub">загрузка…</p>';
-  var r=await sb.from('aspect_price_points').select('*').eq('fabric_id',Number(fid)).order('listing_id').order('h_max',{nullsFirst:false}).order('w_max',{nullsFirst:false});
-  if(r.error){ host.innerHTML='<p class="sub">ошибка: '+escapeHtml(r.error.message)+'</p>'; return; }
-  var rows=r.data||[]; var byL={}, order=[];
+  var rows=[], from=0, PAGE=1000;
+  while(true){ var r=await sb.from('aspect_price_points').select('*').eq('fabric_id',Number(fid)).order('listing_id').order('h_max',{nullsFirst:false}).order('w_max',{nullsFirst:false}).range(from,from+PAGE-1);
+    if(r.error){ host.innerHTML='<p class="sub">ошибка: '+escapeHtml(r.error.message)+'</p>'; return; }
+    rows=rows.concat(r.data||[]); if(!r.data||r.data.length<PAGE) break; from+=PAGE; } var byL={}, order=[];
   rows.forEach(function(p){ if(!byL[p.listing_id]){ byL[p.listing_id]=[]; order.push(p.listing_id); } byL[p.listing_id].push(p); });
   if(cnt) cnt.textContent=rows.length+' точек · '+order.length+' листингов';
   if(!rows.length){ host.innerHTML='<p class="sub">Для этой ткани сеток нет.</p>'; return; }
