@@ -203,6 +203,7 @@
     <button id="tab-price" onclick="showView('price')">Цены по тканям</button>
     <button id="tab-list" onclick="showView('list')">Листинги по тканям</button>
     <button id="tab-swatches" onclick="showView('swatches')">Свотчи</button>
+    <button id="tab-trimswatches" onclick="showView('trimswatches')">Trim Swatches</button>
     <button id="tab-history" onclick="showView('history')">История / Откат</button>
     <div class="spacer"></div>
     <span class="count" id="navcount"></span>
@@ -346,6 +347,21 @@
     <div id="swPaletteWrap"></div>
     <div id="swCropWrap"></div>
     <div id="swGrid"></div>
+  </section>
+
+  <!-- ==== TRIM SWATCHES ==== -->
+  <section id="view-trimswatches" class="hidden">
+    <h1>Trim Swatches</h1>
+    <p class="sub">Библиотека свотчей декоративных тримов: трим × цвет. Источник — чарты трима (напр. CE29 Col1–9); нарезаем кроппером и грузим в Storage-бакет <code>swatches</code> (папка <code>trims/</code>). Цвета без фото помечены на пересъёмку.</p>
+    <div class="row" style="margin:10px 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div style="width:100%"><b>Трим</b> <span class="sub">клик по плашке — открыть трим (число = сколько свотчей залито)</span></div>
+      <div id="twChips" style="display:flex;gap:8px;flex-wrap:wrap;width:100%"></div>
+      <span id="twCov" class="sub"></span>
+      <div style="width:100%;margin-top:6px"><input id="twAddTrim" placeholder="код нового трима (напр. CE30)…" style="max-width:220px"> <input id="twAddTrimName" placeholder="название (необязательно)" style="max-width:260px"> <button id="twAddTrimBtn">+ трим</button></div>
+    </div>
+    <div id="twPaletteWrap"></div>
+    <div id="twCropWrap"></div>
+    <div id="twGrid"></div>
   </section>
 
   <section id="view-history" class="hidden">
@@ -1322,6 +1338,7 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
     SW.colors=(r.data||[]);
     var pr=await sb.from('fabric_palettes').select('*').eq('fabric_id',SW.fab).order('sort_order').order('id');
     SW.pals=(pr.error?[]:(pr.data||[]));
+    if(SW.counts){ var _ok=0,_miss=0; SW.colors.forEach(function(c){ if(c.swatch_url)_ok++; if(c.status==='needs_photo')_miss++; }); SW.counts[SW.fab]={ok:_ok,miss:_miss,total:SW.colors.length}; SW.renderChips(); }
     SW.renderPalettes(); SW.renderGrid(); SW.renderCoverage();
     document.getElementById('swCropWrap').innerHTML='';
   };
@@ -1456,6 +1473,192 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
   };
 
   window.SW=SW;
+})();
+</script>
+<script>
+/* ===== TRIM SWATCHES TAB (deco_trims + trim_colors + trim_palettes; bucket 'swatches' path trims/) ===== */
+(function(){
+  function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function proxied(u){ return (window.SBURL||'https://xtrxsewrzprqrsaxmaxd.supabase.co')+'/functions/v1/img-proxy?url='+encodeURIComponent(u); }
+  if(typeof window.showView==='function'){
+    var _sv=window.showView;
+    window.showView=function(v){
+      _sv(v);
+      var s=document.getElementById('view-trimswatches'); if(s)s.classList.toggle('hidden',v!=='trimswatches');
+      var t=document.getElementById('tab-trimswatches'); if(t)t.className=(v==='trimswatches'?'primary':'');
+      if(v==='trimswatches') TW.render();
+    };
+  }
+
+  var TW={ trim:null, trims:[], colors:[], pals:[], counts:null, sel:null, curPalette:null, _img:null, _scale:1 };
+
+  TW.render=async function(){
+    var grid=document.getElementById('twGrid');
+    if(!window.sb){ grid.innerHTML='<p class="sub">Сначала войди в базу (вкладка входа).</p>'; return; }
+    if(!TW.trims.length){
+      var r=await sb.from('deco_trims').select('id,code,name,is_deleted').order('sort_order').order('code');
+      if(r.error){ grid.innerHTML='<p class="sub">Ошибка тримов: '+esc(r.error.message)+'</p>'; return; }
+      TW.trims=(r.data||[]).filter(function(t){return !t.is_deleted;});
+      var cr=await sb.from('trim_colors').select('trim_id,swatch_url,status');
+      TW.counts={};
+      (cr.data||[]).forEach(function(c){ var o=TW.counts[c.trim_id]||(TW.counts[c.trim_id]={ok:0,miss:0,total:0}); o.total++; if(c.swatch_url)o.ok++; if(c.status==='needs_photo')o.miss++; });
+      TW.trim = TW.trims[0] && TW.trims[0].id;
+      TW.renderChips();
+    }
+    if(!TW.trims.length){ grid.innerHTML='<p class="sub">Пока нет тримов. Добавь код выше (напр. CE29) кнопкой «+ трим».</p>'; document.getElementById('twPaletteWrap').innerHTML=''; }
+    TW.wireAdd();
+    if(TW.trim) TW.loadTrim();
+  };
+
+  TW.wireAdd=function(){
+    var btn=document.getElementById('twAddTrimBtn'); if(!btn||btn._wired) return; btn._wired=true;
+    btn.onclick=async function(){
+      var code=(document.getElementById('twAddTrim').value||'').trim();
+      var name=(document.getElementById('twAddTrimName').value||'').trim();
+      if(!code){ return; }
+      var n=TW.trims.length;
+      var ins=await sb.from('deco_trims').insert({code:code,name:name||null,sort_order:n+1}).select().single();
+      if(ins.error){ alert('Ошибка добавления трима: '+ins.error.message); return; }
+      document.getElementById('twAddTrim').value=''; document.getElementById('twAddTrimName').value='';
+      TW.trims.push(ins.data); TW.counts[ins.data.id]={ok:0,miss:0,total:0}; TW.trim=ins.data.id;
+      TW.renderChips(); TW.loadTrim();
+    };
+  };
+
+  TW.renderChips=function(){
+    var box=document.getElementById('twChips'); if(!box) return; box.innerHTML='';
+    TW.trims.forEach(function(t){
+      var c=(TW.counts&&TW.counts[t.id])||{ok:0,miss:0,total:0}, active=(t.id===TW.trim);
+      var chip=document.createElement('button'); chip.type='button';
+      chip.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid '+(active?'#2F3E36':'#ccc')+';background:'+(active?'#2F3E36':(c.ok?'#fff':'#f3f2ee'))+';color:'+(active?'#fff':(c.ok?'#222':'#9a988f'))+';cursor:pointer;font-size:13px;line-height:1';
+      var badge='<span style="min-width:16px;text-align:center;padding:1px 6px;border-radius:999px;background:'+(active?'rgba(255,255,255,.25)':'#ececec')+';color:'+(active?'#fff':'#555')+';font-size:12px">'+c.ok+'</span>';
+      var miss=c.miss?(' <span title="без фото" style="font-size:11px;color:'+(active?'#ffe9a8':'#c08a00')+'">'+c.miss+'◦</span>'):'';
+      chip.innerHTML='<span>'+esc(t.code)+(t.name?' <span class="sub" style="opacity:.8">'+esc(t.name)+'</span>':'')+'</span>'+badge+miss;
+      chip.onclick=function(){ TW.trim=t.id; TW.renderChips(); TW.loadTrim(); };
+      box.appendChild(chip);
+    });
+  };
+
+  TW.tcode=function(){ var t=TW.trims.find(function(x){return x.id===TW.trim;}); return (t&&t.code)||('T'+TW.trim); };
+
+  TW.loadTrim=async function(){
+    if(!TW.trim) return;
+    var r=await sb.from('trim_colors').select('*').eq('trim_id',TW.trim).order('sort_order').order('id');
+    if(r.error){ document.getElementById('twGrid').innerHTML='<p class="sub">Ошибка цветов: '+esc(r.error.message)+'</p>'; return; }
+    TW.colors=(r.data||[]);
+    var pr=await sb.from('trim_palettes').select('*').eq('trim_id',TW.trim).order('sort_order').order('id');
+    TW.pals=(pr.error?[]:(pr.data||[]));
+    if(TW.counts){ var _ok=0,_miss=0; TW.colors.forEach(function(c){ if(c.swatch_url)_ok++; if(c.status==='needs_photo')_miss++; }); TW.counts[TW.trim]={ok:_ok,miss:_miss,total:TW.colors.length}; TW.renderChips(); }
+    TW.renderPalettes(); TW.renderGrid(); TW.renderCoverage();
+    document.getElementById('twCropWrap').innerHTML='';
+  };
+
+  TW.renderCoverage=function(){
+    var n=TW.colors.length, ok=TW.colors.filter(function(c){return c.swatch_url;}).length, miss=TW.colors.filter(function(c){return c.status==='needs_photo';}).length;
+    document.getElementById('twCov').textContent = n? (ok+'/'+n+' свотчей · '+Math.round(ok/n*100)+'% · '+miss+' без фото') : 'нет цветов — добавь ниже';
+  };
+
+  TW.renderPalettes=function(){
+    var pal=TW.pals||[];
+    var h='<div style="margin:6px 0"><b>Палеты (чарты)</b> <span class="sub">клик по палете — открыть кроппер</span></div><div style="display:flex;gap:10px;flex-wrap:wrap">';
+    pal.forEach(function(p,i){ h+='<div style="text-align:center"><img src="'+p.url+'" style="width:110px;height:110px;object-fit:cover;border:1px solid #ccc;border-radius:8px;cursor:pointer" data-pi="'+i+'"><div class="sub">'+esc(p.ref)+'</div></div>'; });
+    h+='</div><div style="margin-top:8px"><input id="twAddPal" placeholder="URL чарта трима (фото с образцами)…" style="width:55%"> <button id="twAddPalBtn">+ палета</button></div>';
+    var w=document.getElementById('twPaletteWrap'); w.innerHTML=h;
+    w.querySelectorAll('[data-pi]').forEach(function(im){ im.onclick=function(){ TW.openCropper(pal[+im.dataset.pi]); }; });
+    document.getElementById('twAddPalBtn').onclick=async function(){ var u=document.getElementById('twAddPal').value.trim(); if(!u)return; var n=(TW.pals?TW.pals.length:0); var ins=await sb.from('trim_palettes').insert({trim_id:TW.trim,ref:'P'+(n+1),url:u,sort_order:n}); if(ins.error){ alert('Ошибка сохранения палеты: '+ins.error.message); return; } document.getElementById('twAddPal').value=''; TW.loadTrim(); };
+  };
+
+  TW.openCropper=function(p){
+    TW.curPalette=p; TW.sel=null;
+    var h='<div style="margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff">'+
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<b>Кроппер · '+esc(p.ref)+'</b>'+
+        '<span class="sub">выдели рамкой участок цвета →</span>'+
+        '<span>Цвет: <select id="twAssign"></select></span>'+
+        '<button id="twCut" class="primary">Вырезать и загрузить</button>'+
+        '<span id="twCutMsg" class="sub"></span>'+
+      '</div>'+
+      '<div style="position:relative;display:inline-block"><canvas id="twCanvas" style="max-width:100%;border:1px solid #ccc;cursor:crosshair"></canvas><div id="twBox" style="position:absolute;border:2px dashed #2F3E36;background:rgba(47,62,54,.14);display:none;pointer-events:none"></div></div>'+
+      '</div>';
+    document.getElementById('twCropWrap').innerHTML=h;
+    var sel=document.getElementById('twAssign');
+    if(!TW.colors.length){ var o0=document.createElement('option'); o0.value=''; o0.textContent='— сначала добавь цвета ниже —'; sel.appendChild(o0); }
+    TW.colors.forEach(function(c){ var o=document.createElement('option'); o.value=c.color_code; o.textContent=c.color_name+(c.swatch_url?' ✓':''); sel.appendChild(o); });
+    var cv=document.getElementById('twCanvas'), ctx=cv.getContext('2d'), box=document.getElementById('twBox');
+    var img=new Image(); img.crossOrigin='anonymous';
+    img.onload=function(){ var maxW=520, maxH=430; var sc=Math.min(1,maxW/img.naturalWidth,maxH/img.naturalHeight); cv.width=Math.round(img.naturalWidth*sc); cv.height=Math.round(img.naturalHeight*sc); ctx.drawImage(img,0,0,cv.width,cv.height); TW._img=img; TW._scale=sc; };
+    img.onerror=function(){ document.getElementById('twCutMsg').textContent='Не удалось загрузить палету (CORS/URL).'; };
+    img.src=proxied(p.url)+'&cors='+Date.now();
+    TW._drag=false; TW._sx=0; TW._sy=0; TW._moved=false; TW.sel=null; box.style.display='none';
+    cv.onmousedown=function(e){ e.preventDefault(); var r=cv.getBoundingClientRect(); TW._sx=e.clientX-r.left; TW._sy=e.clientY-r.top; TW._drag=true; TW._moved=false; };
+    cv.onmousemove=function(e){ if(!TW._drag)return; var r=cv.getBoundingClientRect(); var x=e.clientX-r.left,y=e.clientY-r.top; if(!TW._moved && Math.abs(x-TW._sx)<3 && Math.abs(y-TW._sy)<3) return; TW._moved=true; var L=Math.min(TW._sx,x),T=Math.min(TW._sy,y),W=Math.abs(x-TW._sx),H=Math.abs(y-TW._sy); box.style.display='block'; box.style.left=L+'px'; box.style.top=T+'px'; box.style.width=W+'px'; box.style.height=H+'px'; TW.sel={L:L,T:T,W:W,H:H}; };
+    if(!TW._mu){ TW._mu=true; window.addEventListener('mouseup',function(){ TW._drag=false; }); }
+    document.getElementById('twCut').onclick=TW.cut;
+  };
+
+  TW.cut=async function(){
+    var msg=document.getElementById('twCutMsg');
+    var code=document.getElementById('twAssign').value;
+    if(!code){ msg.textContent='Сначала добавь и выбери цвет.'; return; }
+    if(!TW.sel||TW.sel.W<8||TW.sel.H<8){ msg.textContent='Сначала выдели область на палете.'; return; }
+    if(!TW._img){ msg.textContent='Палета ещё не загрузилась.'; return; }
+    var sc=TW._scale, img=TW._img;
+    var sxN=TW.sel.L/sc, syN=TW.sel.T/sc, sWN=TW.sel.W/sc, sHN=TW.sel.H/sc;
+    var scale=Math.min(1,1000/Math.max(sWN,sHN));
+    var out=document.createElement('canvas'); out.width=Math.max(1,Math.round(sWN*scale)); out.height=Math.max(1,Math.round(sHN*scale));
+    out.getContext('2d').drawImage(img, sxN,syN,sWN,sHN, 0,0,out.width,out.height);
+    msg.textContent='Загружаю…';
+    var blob=await new Promise(function(res){ out.toBlob(res,'image/webp',0.85); });
+    if(!blob){ msg.textContent='Не удалось создать изображение.'; return; }
+    var path='trims/'+TW.tcode()+'-'+code+'.webp';
+    var up=await sb.storage.from('swatches').upload(path, blob, {upsert:true, contentType:'image/webp'});
+    if(up.error){ msg.textContent='Ошибка Storage: '+esc(up.error.message); return; }
+    var url=sb.storage.from('swatches').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
+    var upd=await sb.from('trim_colors').update({swatch_url:url,status:'ok',palette_ref:TW.curPalette.ref,updated_at:new Date().toISOString()}).eq('trim_id',TW.trim).eq('color_code',code);
+    if(upd.error){ msg.textContent='Ошибка БД: '+esc(upd.error.message); return; }
+    msg.textContent='✓ '+code+' сохранён';
+    TW.loadTrim();
+  };
+
+  TW.renderGrid=function(){
+    var tc=TW.tcode();
+    var h='<div style="margin:14px 0 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b>Цвета трима</b>'+
+      '<input id="twAddColName" placeholder="название цвета (напр. Black & Beige)" style="max-width:240px">'+
+      '<input id="twAddColCode" placeholder="код (напр. COL1)" style="max-width:130px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">'+
+      '<button id="twAddColBtn">+ цвет</button></div>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">';
+    TW.colors.forEach(function(c){
+      var thumb = c.swatch_url ? '<img src="'+c.swatch_url+'" style="width:100%;height:90px;object-fit:cover;border-radius:6px">'
+        : '<div style="height:90px;border-radius:6px;background:'+(c.status==='needs_photo'?'#F6EEDD':'#EFEBE3')+';display:flex;align-items:center;justify-content:center;color:#9A6A1E;font-size:12px;text-align:center">'+(c.status==='needs_photo'?'нужна нарезка':'кроп ожидается')+'</div>';
+      var badge = c.swatch_url ? '<span style="color:#2E6B4F">✓ ok</span>' : (c.status==='needs_photo'?'<span style="color:#9A6A1E">нет фото</span>':'<span style="color:#3F5A8A">палета '+esc(c.palette_ref||'')+'</span>');
+      h+='<div style="border:1px solid #E7E2D8;border-radius:8px;padding:8px">'+thumb+'<div style="margin-top:6px;font-weight:600;font-size:13px">'+esc(c.color_name)+'</div><div class="sub" style="font-family:monospace">'+esc(tc)+' · '+esc(c.color_code||'')+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;font-size:12px">'+badge+'<button data-del="'+esc(c.color_code||'')+'" title="Удалить цвет из базы" style="border:1px solid #e0c9c9;background:#fff;color:#a23;border-radius:6px;cursor:pointer;font-size:12px;padding:2px 7px">✕</button></div></div>';
+    });
+    h+='</div>';
+    var g=document.getElementById('twGrid'); g.innerHTML=h;
+    g.querySelectorAll('[data-del]').forEach(function(bt){ bt.onclick=function(){ TW.delColor(bt.dataset.del); }; });
+    var ab=document.getElementById('twAddColBtn');
+    if(ab) ab.onclick=async function(){
+      var nm=(document.getElementById('twAddColName').value||'').trim();
+      var cd=(document.getElementById('twAddColCode').value||'').trim();
+      if(!nm){ return; }
+      if(!cd){ cd='C'+(TW.colors.length+1); }
+      var n=TW.colors.length;
+      var ins=await sb.from('trim_colors').insert({trim_id:TW.trim,color_name:nm,color_code:cd,status:'needs_photo',sort_order:n+1});
+      if(ins.error){ alert('Ошибка добавления цвета: '+ins.error.message); return; }
+      TW.loadTrim();
+    };
+  };
+
+  TW.delColor=async function(code){
+    var c=(TW.colors||[]).find(function(x){return (x.color_code||'')===code;}); if(!c) return;
+    if(!confirm('Удалить цвет "'+c.color_name+'" ('+TW.tcode()+' · '+code+') из базы? Действие необратимо.')) return;
+    if(c.swatch_url){ try{ await sb.storage.from('swatches').remove(['trims/'+TW.tcode()+'-'+code+'.webp']); }catch(e){} }
+    var d=await sb.from('trim_colors').delete().eq('trim_id',TW.trim).eq('color_code',code);
+    if(d.error){ alert('Ошибка удаления: '+d.error.message); return; }
+    TW.loadTrim();
+  };
+
+  window.TW=TW;
 })();
 </script>
 </body>
