@@ -21,7 +21,7 @@
   h1{font-family:Georgia,"Times New Roman",serif;font-size:25px;font-weight:600;letter-spacing:.3px;margin:0 0 4px}
   h2{font-family:Georgia,"Times New Roman",serif;font-size:18px;font-weight:600;margin:28px 0 8px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
-  .nav{position:sticky;top:0;z-index:30;background:var(--bg);padding:8px 0;
+  .nav{position:sticky;top:var(--gbarH,64px);z-index:30;background:var(--bg);padding:8px 0;
     border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;margin-bottom:16px}
   .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
   button{font:inherit;border:1px solid var(--line2);background:#fff;color:var(--text);
@@ -109,6 +109,19 @@
   #view-styles .f-name{font-family:Georgia,serif;font-size:16px;font-weight:600}
   #view-styles .f-code{font-family:Menlo,monospace;font-size:12px;width:auto;display:inline-block;background:var(--romlt);border-radius:5px;margin-top:4px;min-width:64px}
   #view-styles .f-desc{min-height:118px;line-height:1.5}
+  #view-trims .f-desc{min-height:110px;line-height:1.5;resize:vertical;white-space:pre-wrap}
+  #view-fabrics .fabdesc{width:100%;min-width:260px;min-height:64px;line-height:1.4;font-size:12px;resize:vertical}
+  /* алфавитный указатель тканей */
+  .fabalpha{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 10px;align-items:center}
+  .fabalpha button{border:1px solid var(--line2);background:#fff;border-radius:8px;padding:4px 11px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;color:#2f2a24}
+  .fabalpha button:hover{background:#f1ede4}
+  .fabalpha button.on{background:#2f2a24;color:#fff;border-color:#2f2a24}
+  .fabalpha button.on .c{color:#d8cdb8}
+  .fabalpha button .c{font-size:10px;color:#b0a184;margin-left:4px;font-weight:400}
+  /* буква не должна прятаться под липкой шапкой таблицы: отступ на самой строке-цели прыжка */
+  #view-fabrics tr.fabletter{scroll-margin-top:64px}
+  #view-fabrics tr.fabletter td{background:#efe8da;border-left:5px solid #c8b995;color:#2f2a24;font-weight:800;font-size:17px;letter-spacing:.06em;padding:9px 12px}
+  #view-fabrics tr.fabletter td .lcnt{font-size:11px;font-weight:500;color:#8a7d62;margin-left:10px;letter-spacing:0}
   #view-styles .ex{border:1px solid var(--line);border-radius:7px;padding:7px;margin-bottom:7px;background:#fff}
   #view-styles .ex input{width:100%;border:1px solid transparent;background:transparent;border-radius:5px;padding:4px 6px;font:inherit}
   #view-styles .ex input:focus{outline:none;border-color:var(--accent2);background:#fff}
@@ -152,7 +165,7 @@
   .lswarn{background:#fff3cd;border-bottom:1px solid #e0c97f;color:#5b4a17;padding:9px 14px;font-size:13px;line-height:1.45}
   /* ===== эскизы/фото тримов ===== */
   td.sk{vertical-align:middle}
-  img.skth{height:56px;width:auto;max-width:120px;object-fit:cover;border:1px solid var(--line,#e3ddd2);border-radius:5px;cursor:zoom-in;display:block}
+  img.skth{height:224px;width:auto;max-width:480px;object-fit:contain;background:#f6f4ef;border:1px solid var(--line,#e3ddd2);border-radius:5px;cursor:zoom-in;display:block}
   .nosk{font-size:11px;color:var(--muted,#9a917f)}
   .sklb{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;z-index:60;cursor:zoom-out}
   .sklb img{width:auto;height:auto;max-width:94vw;max-height:94vh;min-width:min(80vw,440px);object-fit:contain;border:4px solid #fff;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
@@ -190,6 +203,58 @@
 #fabTable td,#fabTable th{padding:6px 8px}
 #gridWrap table{margin-bottom:8px;border-collapse:collapse}
 #gridWrap td,#gridWrap th{border:1px solid var(--line);padding:3px 8px}
+/* — Себестоимость + Расчёт стилей (.coview): компактно, без прокруток и без «клеточного» вида — */
+.coview .cotable{width:100%;border-collapse:collapse;table-layout:auto}
+.coview .cotable th{font-size:11px;text-align:left;color:var(--muted);border-bottom:1px solid var(--line);padding:4px 6px;background:transparent}
+.coview .cotable td{padding:3px 6px;border-bottom:1px solid var(--line2,#eee);vertical-align:middle}
+.coview .cotable tr:hover td{background:#faf8f4}
+.coview .cotable input,.coview .cotable select{border:1px solid transparent;background:transparent;font:inherit;font-size:12.5px;padding:2px 4px;border-radius:5px;width:100%}
+.coview .cotable input:hover,.coview .cotable select:hover{border-color:var(--line)}
+.coview .cotable input:focus,.coview .cotable select:focus{border-color:var(--line);background:#fff;outline:none}
+.coview .cotable input.num{text-align:right;width:76px}
+.coview .conote{font-size:10.5px;color:var(--muted)}
+.coview .conote input{font-size:10.5px;color:var(--muted);padding:0 4px}
+.coview .cobadge{display:inline-block;font-size:9.5px;padding:1px 6px;border-radius:8px;background:#f1ede4;color:#8a7d62;margin-left:6px;vertical-align:1px}
+.coview .cocard{border:1px solid var(--line2);border-radius:10px;padding:12px 16px;background:#fff;margin-bottom:14px}
+.coview h2{margin:0 0 6px;font-size:15px}
+/* каталог элементов (Себестоимость): просторные строки, чёткие зоны, разделитель между колонками */
+.coview .elcols{columns:520px 3;column-gap:64px;column-rule:1px solid var(--line);max-width:1720px;margin-top:12px}
+.coview .elgroup{break-inside:avoid;margin-bottom:30px;padding-right:4px}
+.coview .elgroup h3{font-size:14px;color:#2f2a24;margin:0 0 6px;border-left:4px solid #c8b995;border-bottom:2px solid var(--line);padding:2px 0 7px 10px;font-weight:700;letter-spacing:.02em}
+.coview .elgroup h3 .cnt{float:right;font-weight:500;color:#fff;background:#c8b995;border-radius:10px;padding:0 8px;font-size:11px;line-height:18px;margin-top:1px}
+.coview .elrow{display:flex;align-items:center;gap:16px;padding:11px 6px;border-bottom:1px solid #f0ece3}
+.coview .elgroup .elrow:last-of-type{border-bottom:none}
+.coview .elrow:hover{background:#faf8f4;border-radius:8px}
+.coview .elrow .eln{flex:1;min-width:0}
+.coview .elrow .eln input{border:1px solid transparent;background:transparent;font:inherit;padding:1px 4px;border-radius:5px;width:100%;box-sizing:border-box}
+.coview .elrow .eln input:hover{border-color:var(--line)}
+.coview .elrow .eln input:focus{border-color:var(--line);background:#fff;outline:none}
+.coview .elrow .eln .nm{font-weight:600;font-size:13.5px;color:#2f2a24}
+.coview .elrow .eln .nt{font-size:10.5px;color:var(--muted);text-overflow:ellipsis;margin-top:1px}
+.coview .elrow .elu select{border:1px solid transparent;background:transparent;font:inherit;font-size:11.5px;color:var(--muted);padding:2px;border-radius:5px;width:50px;text-align:center}
+.coview .elrow .elu select:hover{border-color:var(--line)}
+.coview .elrow .elp{width:112px;flex:none;text-align:right}
+.coview .elrow .elp input{border:1px solid transparent;background:transparent;font:inherit;font-weight:700;font-size:15px;text-align:right;width:100%;padding:2px 6px;border-radius:6px;box-sizing:border-box;color:#2f2a24}
+.coview .elrow .elp input:hover{border-color:var(--line)}
+.coview .elrow .elp input:focus{border-color:var(--line);background:#fff;outline:none}
+.coview .elrow .elp.price0 input{background:#fdf0ec;border-color:#e8c7bc}
+.coview .elrow .elp .cur{font-size:10px;color:var(--muted);margin-top:0}
+/* плашки ставок (Себестоимость) */
+.coview .ratetile{flex:1;min-width:150px;max-width:230px;border:1px solid var(--line2);border-radius:12px;padding:14px 16px;background:linear-gradient(180deg,#fff,#faf8f4)}
+.coview .ratetile .rt-name{font-size:12px;color:var(--muted);margin-bottom:4px}
+.coview .ratetile input{border:none;background:transparent;font:inherit;font-size:26px;font-weight:600;width:110px;padding:0;color:#2f2a24}
+.coview .ratetile input:focus{outline:none;border-bottom:2px solid #2f2a24}
+.coview .ratetile .rt-unit{font-size:11px;color:var(--muted)}
+/* плашки стилей (Расчёт стилей) */
+.coview .stylecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:10px 0 18px}
+.coview .stylecard{border:1px solid var(--line2);border-radius:12px;padding:14px 16px;background:#fff;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.coview .stylecard:hover{box-shadow:0 3px 14px rgba(60,50,30,.12);transform:translateY(-1px)}
+.coview .stylecard.on{border-color:#2f2a24;box-shadow:0 3px 14px rgba(60,50,30,.16);background:linear-gradient(180deg,#fff,#faf8f4)}
+.coview .stylecard .sc-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.coview .stylecard .sc-code{font-size:10.5px;color:var(--muted);margin-bottom:8px}
+.coview .stylecard .sc-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:10.5px;color:#8a7d62}
+.coview .stylecard .sc-meta span{background:#f1ede4;border-radius:8px;padding:1px 7px}
+.coview .stylecard .sc-empty{font-size:10.5px;color:#b0a184}
 </style>
 </head>
 <body>
@@ -218,14 +283,18 @@
     <button id="tab-styles" class="primary" onclick="showView('styles')">Стили</button>
     <button id="tab-trims" onclick="showView('trims')">Ромы</button>
     <button id="tab-fabrics" onclick="showView('fabrics')">Ткани</button>
-    <button id="tab-price" onclick="showView('price')">Ставки по стилям</button>
-    <button id="tab-grid" onclick="showView('grid')">Сетка Aspect</button>
-    <button id="tab-list" onclick="showView('list')">Листинги по тканям</button>
-    <button id="tab-swatches" onclick="showView('swatches')">Свотчи</button>
-    <button id="tab-trimswatches" onclick="showView('trimswatches')">Trim Swatches</button>
+    <button id="tab-swatches" onclick="showView('swatches')">Свотчи тканей</button>
+    <button id="tab-decotrims" onclick="showView('decotrims')">Тримы</button>
+    <button id="tab-trimswatches" onclick="showView('trimswatches')">Свотчи тримов</button>
+    <!-- tab-price «Ставки по стилям» убран из меню 2026-07-10 по решению N (устарел, заменён «Себестоимостью»); вью и код оставлены до отдельной чистки -->
+    <button id="tab-cost" onclick="showView('cost')">Себестоимость</button>
+    <button id="tab-stylecalc" onclick="showView('stylecalc')">Расчёт стилей</button>
+    <button id="tab-bands" onclick="showView('bands')">Бэнды</button>
     <button id="tab-masters" onclick="showView('masters')">Эталоны</button>
     <button id="tab-newlisting" onclick="showView('newlisting')">Новый листинг</button>
     <button id="tab-media" onclick="showView('media')">Медиа</button>
+    <button id="tab-grid" onclick="showView('grid')">Сетка Aspect</button>
+    <button id="tab-list" onclick="showView('list')">Листинги по тканям</button>
     <button id="tab-history" onclick="showView('history')">История / Откат</button>
     <div class="spacer"></div>
     <span class="count" id="navcount"></span>
@@ -279,10 +348,9 @@
       <table id="trtable">
         <thead><tr>
           <th style="width:11%;text-align:left">Код</th>
-          <th style="width:40%;text-align:left">Описание каймы / конструкция</th>
-          <th style="width:13%;text-align:left">Цена рома (CAD)</th>
-          <th style="width:20%;text-align:left">Эскиз / фото</th>
-          <th style="width:16%"></th>
+          <th style="width:34%;text-align:left">Описание каймы / конструкция</th>
+          <th style="width:35%;text-align:left">Эскиз / фото</th>
+          <th style="width:20%"></th>
         </tr></thead>
         <tbody id="trbody"></tbody>
       </table>
@@ -321,6 +389,34 @@
     </div>
   </section>
 
+  <!-- ================= COST (Себестоимость: ставки + каталог) ================= -->
+  <section id="view-cost" class="hidden coview">
+    <h1>Себестоимость — ставки работ и цены элементов</h1>
+    <p class="sub">Глобальные входные цены системы: ставки 5 видов работ (CAD/час) и каталог закупочных цен элементов. Действуют на все стили. Состав стилей и генерация сетки — во вкладке «Расчёт стилей».</p>
+    <div id="costBody"><p class="sub">Загрузка…</p></div>
+  </section>
+
+  <!-- ================= STYLE CALC (Расчёт стилей) ================= -->
+  <section id="view-stylecalc" class="hidden coview">
+    <h1>Расчёт стилей — состав, часы, сетка цен</h1>
+    <p class="sub">Выбери стиль: состав с правилами количеств от размера &middot; нормы часов &middot; конфигурации Chain/Cordless/Motor &middot; ром-аддер &middot; генерация ценовой сетки. Ставки и цены элементов — во вкладке «Себестоимость».</p>
+    <div id="styleCalcBody"><p class="sub">Загрузка…</p></div>
+  </section>
+
+  <!-- ================= DECO TRIMS (Тримы: цены за ярд) ================= -->
+  <section id="view-decotrims" class="hidden coview">
+    <h1>Тримы — справочник и закупочные цены</h1>
+    <p class="sub">Деко-тримы (бордюрные ленты, тесьма CE-серии) с ценой за ярд — по аналогии с «Тканями». Эти цены использует ром-аддер в «Расчёте стилей» и листинги с ромом. Цвета тримов — во вкладке «Trim Swatches».</p>
+    <div id="decoTrimsBody"><p class="sub">Загрузка…</p></div>
+  </section>
+
+  <!-- ================= BANDS (эталонные бэнды по каналам) ================= -->
+  <section id="view-bands" class="hidden coview">
+    <h1>Бэнды — эталонные размеры по каналам</h1>
+    <p class="sub">Бэнд = диапазон размера в дюймах (например 23–32″). Для каждого канала — свой эталонный набор бэндов ширины и высоты на стиль. Etsy — один набор на оба магазина (LOGANOVA + Aspect). Пустой «до» = «и больше» (83+).</p>
+    <div id="bandsBody"><p class="sub">Загрузка…</p></div>
+  </section>
+
   <!-- ================= FABRICS ================= -->
   <section id="view-fabrics" class="hidden">
     <h1>Ткани &mdash; справочник и закупочные цены</h1>
@@ -329,14 +425,17 @@
       <span class="srcb estimated">оценка</span> черновик, выведенный из сеток Aspect (наведите на бейдж &mdash; объяснение) &middot; <span class="srcb none">нет цены</span>.
       Правка цены превращает оценку в «вручную». Добавление/удаление тканей &mdash; на вкладке «Ставки по стилям».</p>
     <div class="bar">
+      <button class="primary" onclick="fabAdd()">+ Добавить ткань</button>
+      <input type="text" id="newfabName" placeholder="название новой ткани…" style="max-width:220px" onkeydown="if(event.key==='Enter')fabAdd()">
       <input type="text" id="fabSearch" placeholder="поиск ткани…" style="max-width:220px" oninput="renderFabrics()">
       <button class="savefoot" onclick="fabCommit()">💾 Записать в базу</button>
       <span class="count" id="fabCount"></span>
     </div>
+    <div id="fabAlpha" class="fabalpha"></div>
     <div class="wrap">
       <table id="fabTable"><thead><tr>
         <th class="rownum">#</th><th>Ткань</th><th>Код</th><th>Цена за ярд<span class="h2">CAD</span></th>
-        <th>Ширина<span class="h2">дюймы</span></th><th>Источник</th><th>Заметка</th><th>Обновлено</th>
+        <th>Ширина<span class="h2">дюймы</span></th><th style="min-width:280px">Описание ткани</th><th>Источник</th><th>Заметка</th>
       </tr></thead><tbody id="fabBody"></tbody></table>
     </div>
   </section>
@@ -825,11 +924,40 @@ function stRefSet(i,ch,url){
   if(typeof scheduleFlush==="function"){ if(typeof dirtyStyles!=="undefined"&&dirtyStyles.add) dirtyStyles.add(i); scheduleFlush(); }
   else if(typeof autosave==="function"){ autosave(); }
 }
-function stRefInput(i,ch,el){
+function stRefName(url){
+  /* человекочитаемое имя из слага URL: etsy /listing/<id>/<slug>, shopify /products/<slug>, amazon /dp/<asin> */
+  try{
+    const u = new URL(url);
+    const parts = u.pathname.split('/').filter(Boolean);
+    let slug = "";
+    const li = parts.indexOf('listing');
+    if(li>-1) slug = parts[li+2]||parts[li+1]||"";
+    else{
+      const pi = parts.indexOf('products');
+      if(pi>-1) slug = parts[pi+1]||"";
+      else{
+        const di = parts.indexOf('dp');
+        if(di>-1) return 'Amazon · '+(parts[di+1]||'').toUpperCase();
+        slug = parts[parts.length-1]||"";
+      }
+    }
+    slug = decodeURIComponent(slug).replace(/[-_+]+/g,' ').trim();
+    if(!slug || /^\d+$/.test(slug)) return u.hostname.replace(/^www\./,'');
+    return slug.replace(/\b[a-zа-яё]/g, ch=>ch.toUpperCase());
+  }catch(e){ return url; }
+}
+function stRefInput(i,ch,el,ev){
   const url = el.value.trim();
   stRefSet(i,ch,url);
-  const a = el.parentNode.querySelector(".exref-link");
-  if(a){ if(url){ a.href=url; a.textContent=url; a.title=url; a.style.display="block"; } else { a.style.display="none"; a.removeAttribute("href"); a.textContent=""; } }
+  /* сворачиваем в «название + удалить»: сразу при вставке URL, иначе — по уходу из поля (change) */
+  const isUrl = /^https?:\/\/\S+\.\S{2,}/.test(url);
+  const isPaste = ev && ev.inputType==='insertFromPaste';
+  const isChange = ev && ev.type==='change';
+  if(url && isUrl && (isPaste||isChange)) stRenderEx(i);
+}
+function stRefDel(i,ch){
+  stRefSet(i,ch,"");
+  stRenderEx(i);
 }
 function stRenderEx(i){
   const cell = document.getElementById('stex-'+i);
@@ -837,13 +965,15 @@ function stRenderEx(i){
   const refs = stRefGet(i);
   cell.innerHTML = ST_REF_CHANNELS.map(c=>{
     const key=c[0], lbl=c[1], ph=c[2], url=refs[key]||"";
-    const link = url
-      ? `<a class="exref-link" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}">${escapeHtml(url)}</a>`
-      : `<a class="exref-link" style="display:none" target="_blank" rel="noopener"></a>`;
+    const body = url
+      ? `<div style="display:flex;align-items:center;gap:6px;min-height:28px">`
+        + `<a class="exref-link" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}">🔗 ${escapeHtml(stRefName(url))}</a>`
+        + `<button class="mini" title="Удалить ссылку" onclick="stRefDel(${i},'${key}')" style="flex:none">✕</button>`
+        + `</div>`
+      : `<input class="exu" value="" placeholder="${escapeHtml(ph)}" oninput="stRefInput(${i},'${key}',this,event)" onchange="stRefInput(${i},'${key}',this,event)">`;
     return `<div class="exref">`
       + `<div class="exref-lbl">${lbl}</div>`
-      + `<input class="exu" value="${escapeHtml(url)}" placeholder="${escapeHtml(ph)}" oninput="stRefInput(${i},'${key}',this)">`
-      + link
+      + body
       + `</div>`;
   }).join("");
 }
@@ -851,7 +981,7 @@ function stUpd(i,k,v){ STYLES[i][k]=v; autosave(); }
 function stUpdEx(i,j,k,v){ STYLES[i].examples[j][k]=v; autosave(); }
 function stAddEx(i){ STYLES[i].examples=STYLES[i].examples||[]; STYLES[i].examples.push({name:"",url:"",price:""}); autosave(); stRenderEx(i); }
 function stDelEx(i,j){ STYLES[i].examples.splice(j,1); autosave(); stRenderEx(i); }
-function stAdd(){ STYLES.push({name:"Новый стиль",code:"",badge:"",desc:"",examples:[]}); autosave(); renderStyles(); window.scrollTo(0,document.body.scrollHeight); }
+function stAdd(){ STYLES.unshift({name:"Новый стиль",code:"",badge:"",desc:"",examples:[]}); autosave(); renderStyles(); window.scrollTo(0,0); }
 function stDel(i){ if(confirm('Удалить стиль «'+(STYLES[i].name||'')+'»?')){ STYLES.splice(i,1); autosave(); renderStyles(); } }
 function stMove(i,d){ const n=i+d; if(n<0||n>=STYLES.length) return; [STYLES[i],STYLES[n]]=[STYLES[n],STYLES[i]]; autosave(); renderStyles(); }
 function stExportJSON(){ download(new Blob([JSON.stringify(STYLES,null,2)],{type:"application/json"}), "LOGANOVA_RS_Fold-Styles_"+stamp()+".json"); }
@@ -888,8 +1018,7 @@ function renderTrims(){
     const tr = document.createElement('tr');
     tr.innerHTML =
       `<td><input class="f f-code" style="min-width:84px" value="${escapeHtml(row.code)}" placeholder="код" oninput="trUpd(${i},'code',this.value)"></td>
-       <td><input class="f" value="${escapeHtml(row.desc)}" placeholder="описание каймы / конструкция" oninput="trUpd(${i},'desc',this.value)"></td>
-       <td><input class="f num" type="number" min="0" step="0.01" style="width:120px" value="${escapeHtml(row.price)}" placeholder="0.00" oninput="trUpd(${i},'price',this.value)"></td>
+       <td><textarea class="f f-desc" placeholder="описание каймы / конструкция" oninput="trUpd(${i},'desc',this.value)">${escapeHtml(row.desc)}</textarea></td>
        <td class="sk">${trImgCell(row,i)}</td>
        <td><div class="rowact">
          <button class="x" title="вверх" onclick="trMove(${i},-1)">↑</button>
@@ -901,7 +1030,7 @@ function renderTrims(){
   const c = document.getElementById('trcount'); if(c) c.textContent = TRIMS.length + " тримов";
 }
 function trUpd(i,k,v){ TRIMS[i][k]=v; autosave(); }
-/* фото Preview для трима: загрузка с уменьшением до 640px, хранится в TRIMS[i].preview (попадает в прогресс/Excel) */
+/* фото Preview для трима: загрузка с уменьшением до 1000px, хранится в TRIMS[i].preview (попадает в прогресс/Excel) */
 function trImgCell(row,i){
   let img;
   if(row.sketch||row.preview){
@@ -918,10 +1047,10 @@ function trPic(i,input){
   r.onload=e=>{
     const im=new Image();
     im.onload=()=>{
-      const max=640; let w=im.width, h=im.height;
+      const max=1000; let w=im.width, h=im.height;
       if(w>max||h>max){ const s=Math.min(max/w, max/h); w=Math.round(w*s); h=Math.round(h*s); }
       let data;
-      try{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(im,0,0,w,h); data=cv.toDataURL('image/jpeg',0.82); }
+      try{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(im,0,0,w,h); data=cv.toDataURL('image/jpeg',0.88); }
       catch(_){ data=e.target.result; }
       TRIMS[i].sketch=data; try{SKIDX[(TRIMS[i].code||'').trim().toLowerCase()]=data;}catch(_){} autosave(); try{ if(typeof dirtyTrims!=='undefined'){ dirtyTrims.add(i); scheduleFlush(); } }catch(_){}
       if(!LS_OK){ alert('Фото добавлено, но браузер не сохраняет прогресс между открытиями — обязательно нажмите «Сохранить прогресс» и держите файл.'); } if(typeof sb==='undefined'||!sb){ alert('Внимание: нет подключения к базе (похоже, открыт локальный файл). Фото НЕ уйдёт в базу — откройте инструмент на сайте и войдите, иначе оно останется только в этом браузере.'); }
@@ -1129,7 +1258,7 @@ function showView(v){
   document.getElementById('view-list').classList.toggle('hidden', v!=='list');
   document.getElementById('tab-styles').className = v==='styles'?'primary':'';
   document.getElementById('tab-trims').className = v==='trims'?'primary':'';
-  document.getElementById('tab-price').className = v==='price'?'primary':'';
+  var tbPrice=document.getElementById('tab-price'); if(tbPrice)tbPrice.className = v==='price'?'primary':''; /* кнопка убрана 2026-07-10 */
   document.getElementById('tab-list').className = v==='list'?'primary':'';
   if(v==='trims') renderTrims();
   if(v==='price') rebuildPricing();  /* rebuild columns from current styles, keep entered data */
@@ -1270,8 +1399,8 @@ stUpdEx=function(i,j,k,v){ STYLES[i].examples[j][k]=v; dirtyStyles.add(i); sched
 stAddEx=function(i){ STYLES[i].examples=STYLES[i].examples||[]; STYLES[i].examples.push({name:"",url:"",price:""}); dirtyStyles.add(i); stRenderEx(i); scheduleFlush(); };
 stDelEx=function(i,j){ STYLES[i].examples.splice(j,1); dirtyStyles.add(i); stRenderEx(i); scheduleFlush(); };
 stMove=function(i,d){ var n=i+d; if(n<0||n>=STYLES.length)return; var tmp=STYLES[i]; STYLES[i]=STYLES[n]; STYLES[n]=tmp; renderStyles(); STYLES.forEach(function(_,k){dirtyStyles.add(k);}); scheduleFlush(); };
-stAdd=async function(){ var base="Новый стиль",nm=base,k=2,ex={}; STYLES.forEach(function(s){ex[s.name]=1;}); while(ex[nm]){nm=base+' '+k;k++;} var o={name:nm,code:"",badge:"",desc:"",examples:[]}; STYLES.push(o); renderStyles(); window.scrollTo(0,document.body.scrollHeight);
-  if(sb){ var r=await sb.from('styles').insert({name:nm,code:'',badge:'',description:'',examples:[],sort_order:STYLES.length-1,is_active:true}).select().single(); if(!r.error){ o._id=r.data.id; refreshRefMaps(); rebuildPricing(); } else dbStatus('warn',r.error.message); } };
+stAdd=async function(){ var base="Новый стиль",nm=base,k=2,ex={}; STYLES.forEach(function(s){ex[s.name]=1;}); while(ex[nm]){nm=base+' '+k;k++;} var o={name:nm,code:"",badge:"",desc:"",examples:[]}; STYLES.unshift(o); renderStyles(); window.scrollTo(0,0);
+  if(sb){ var r=await sb.from('styles').insert({name:nm,code:'',badge:'',description:'',examples:[],sort_order:0,is_active:true}).select().single(); if(!r.error){ o._id=r.data.id; refreshRefMaps(); rebuildPricing(); STYLES.forEach(function(_,ki){dirtyStyles.add(ki);}); scheduleFlush(); } else dbStatus('warn',r.error.message); } };
 stDel=async function(i){ if(!confirm('Удалить стиль «'+(STYLES[i].name||'')+'»?'))return; var o=STYLES[i]; STYLES.splice(i,1); renderStyles(); rebuildPricing();
   if(sb&&o._id!=null){ var r=await sb.from('styles').delete().eq('id',o._id); if(r.error)dbStatus('warn',r.error.message); } refreshRefMaps(); renderListings(); };
 
@@ -1288,6 +1417,25 @@ addFabric=async function(){ var inp=document.getElementById('newfab'); var name=
   if(!FABRICS.concat(USERFABS).some(function(f){return f.toLowerCase()===name.toLowerCase();})){ USERFABS.push(name); addRow(name); }
   inp.value=''; computeBoardFabs(); renderListings();
   if(sb){ var r=await sb.from('fabrics').insert({name:name,source:'manual',roll_width:54,is_deleted:false}).select().single(); if(!r.error){ FAB_ID[name.toLowerCase()]=r.data.id; FAB_NAME[r.data.id]=name; } else dbStatus('warn',r.error.message); } };
+/* Добавление ткани прямо с вкладки «Ткани»: instant-write + новая строка сверху FABREC (как «+ Добавить стиль») */
+fabAdd=async function(){ var inp=document.getElementById('newfabName'); var name=(inp&&inp.value||'').trim();
+  if(!name){ if(inp)inp.focus(); alert('Введите название ткани'); return; }
+  if(FABREC.some(function(f){return (f.name||'').toLowerCase()===name.toLowerCase();})){ alert('Такая ткань уже есть: '+name); return; }
+  if(!sb){ alert('Нет подключения к базе — ткань не сохранится. Откройте инструмент на сайте и войдите.'); return; }
+  var r=await sb.from('fabrics').insert({name:name,source:'manual',roll_width:54,is_deleted:false}).select().single();
+  if(r.error){ alert('Ошибка сохранения ткани: '+r.error.message); return; }
+  var rec={ id:r.data.id, name:name, code:null, base_price:null, roll_width:54, price_source:null, price_note:null, price_updated_at:null, is_discontinued:false, is_deleted:false, source:'manual' };
+  FABREC.unshift(rec);
+  try{ FAB_ID[name.toLowerCase()]=r.data.id; FAB_NAME[r.data.id]=name;
+    if(typeof USERFABS!=='undefined' && typeof FABRICS!=='undefined' && !FABRICS.concat(USERFABS).some(function(f){return f.toLowerCase()===name.toLowerCase();})){ USERFABS.push(name); if(typeof addRow==='function')addRow(name); }
+    if(typeof computeBoardFabs==='function')computeBoardFabs();
+    if(typeof renderListings==='function')renderListings();
+  }catch(_){}
+  if(inp)inp.value='';
+  renderFabrics();
+  var w=document.querySelector('#view-fabrics .wrap'); if(w)w.scrollTop=0; window.scrollTo(0,0);
+  if(typeof dbStatus==='function')dbStatus('ok','✓ ткань добавлена: '+name);
+};
 delFab=async function(f){ var cnt=LISTINGS.filter(function(l){return (LASSIGN[l.id]||"")===f;}).length; var sub=(FABMETA[f]&&FABMETA[f].sub)||""; var target=(sub&&!DELFABS.includes(sub))?sub:"";
   if(!confirm('Удалить ткань «'+f+'»?'+(cnt?(' '+cnt+' листинг(ов) перейдут '+(target?'в «'+target+'».':'в «Без ткани».')):'')))return;
   LISTINGS.forEach(function(l){ if((LASSIGN[l.id]||"")===f){ if(target)LASSIGN[l.id]=target; else delete LASSIGN[l.id]; dirtyListings.add(String(l.id)); } });
@@ -1353,21 +1501,42 @@ var FABREC=[]; var dirtyFabRows={};
 function srcBadge(src,note){ var m={manual:'вручную',costmaster:'Cost Master',estimated:'оценка'};
   var cls=src||'none', lbl=src?(m[src]||src):'нет цены';
   return '<span class="srcb '+cls+'" title="'+escapeHtml(note||'')+'">'+lbl+'</span>'; }
+/* верхнее меню вкладок всегда видно: липнет ПОД тёмной шапкой (высота шапки — в --gbarH) */
+function fixNavTop(){ try{ var g=document.querySelector('.gbar');
+  document.documentElement.style.setProperty('--gbarH',(g&&g.offsetHeight?g.offsetHeight:64)+'px'); }catch(_){}}
+window.addEventListener('load',fixNavTop); window.addEventListener('resize',fixNavTop); setTimeout(fixNavTop,800);
+function fabLetter(name){ var ch=(name||'').trim().charAt(0).toUpperCase(); return /[A-ZА-ЯЁ]/.test(ch)?ch:'#'; }
+function fabAlphaGo(btn,id){
+  document.querySelectorAll('.fabalpha button').forEach(function(b){ b.classList.remove('on'); });
+  if(btn)btn.classList.add('on');
+  var e=document.getElementById(id); if(e)e.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function renderFabrics(){ var host=document.getElementById('fabBody'); if(!host) return;
   var q=((document.getElementById('fabSearch')||{}).value||'').toLowerCase();
   var rows=FABREC.filter(function(f){ return !q || f.name.toLowerCase().indexOf(q)>=0; });
+  rows=rows.slice().sort(function(a,b){ return a.name.localeCompare(b.name,'ru',{sensitivity:'base'}); });
+  /* алфавитный указатель: буква → кол-во; клик — прыжок к группе */
+  var alpha=document.getElementById('fabAlpha');
+  var _counts={}; rows.forEach(function(f){ var L=fabLetter(f.name); _counts[L]=(_counts[L]||0)+1; });
+  if(alpha){
+    alpha.innerHTML=Object.keys(_counts).sort().map(function(L){
+      return '<button onclick="fabAlphaGo(this,\'fablet-'+(L==='#'?'num':L)+'\')">'+L+'<span class="c">'+_counts[L]+'</span></button>';
+    }).join('')+(q?'<span class="count" style="margin-left:8px">фильтр: «'+escapeHtml(q)+'»</span>':''); }
+  var lastL=null;
   host.innerHTML=rows.map(function(f,i){ var note=f.price_note||'';
-    return '<tr data-fid="'+f.id+'">'
+    var L=fabLetter(f.name), hdr='';
+    if(L!==lastL){ lastL=L; hdr='<tr class="fabletter" id="fablet-'+(L==='#'?'num':L)+'"><td colspan="8">'+L+'<span class="lcnt">'+_counts[L]+' ткан'+(_counts[L]===1?'ь':(_counts[L]<5?'и':'ей'))+'</span></td></tr>'; }
+    return hdr+'<tr data-fid="'+f.id+'">'
       +'<td class="rownum">'+(i+1)+'</td>'
       +'<td><b>'+escapeHtml(f.name)+'</b>'+(f.is_discontinued?' <span class="srcb none">discontinued</span>':'')+'</td>'
       +'<td><input type="text" data-ff="code" value="'+escapeHtml(f.code||'')+'" maxlength="6" style="width:60px;text-transform:uppercase"></td>'
       +'<td><input class="num" type="number" min="0" step="0.01" data-ff="price" value="'+(f.base_price==null?'':f.base_price)+'" style="width:86px"></td>'
       +'<td><input class="num" type="number" min="1" step="1" data-ff="width" value="'+(f.roll_width||54)+'" style="width:60px"></td>'
+      +'<td><textarea class="fabdesc" data-ff="description" placeholder="из чего сделана, характеристики… (для листингов)">'+escapeHtml(f.description||'')+'</textarea></td>'
       +'<td>'+srcBadge(f.price_source,note)+'</td>'
       +'<td class="note" title="'+escapeHtml(note)+'">'+escapeHtml(note.length>90?note.slice(0,90)+'…':note)+'</td>'
-      +'<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+(f.price_updated_at?new Date(f.price_updated_at).toLocaleDateString('ru-RU'):'')+'</td>'
     +'</tr>'; }).join('');
-  host.querySelectorAll('input').forEach(function(el){ el.addEventListener('input', function(){
+  host.querySelectorAll('input,textarea').forEach(function(el){ el.addEventListener('input', function(){
     var tr=el.closest('tr'); dirtyFabRows[tr.getAttribute('data-fid')]=true; markUnsaved(); }); });
   updateFabCount(); }
 function updateFabCount(){ var el=document.getElementById('fabCount'); if(!el) return;
@@ -1383,8 +1552,9 @@ async function fabCommit(){ if(!sb) return; var ids=Object.keys(dirtyFabRows);
       var tr=document.querySelector('#fabBody tr[data-fid="'+fid+'"]'); if(!tr) continue;
       var rec=null; for(var j=0;j<FABREC.length;j++){ if(FABREC[j].id===fid){ rec=FABREC[j]; break; } } if(!rec) continue;
       var pv=tr.querySelector('[data-ff=price]').value, wv=tr.querySelector('[data-ff=width]').value, cv=tr.querySelector('[data-ff=code]').value.trim().toUpperCase();
+      var dEl=tr.querySelector('[data-ff=description]'); var dv=dEl?dEl.value.trim():null;
       var newPrice=(pv===''?null:Number(pv)); var oldPrice=(rec.base_price==null?null:Number(rec.base_price));
-      var upd={ base_price:newPrice, roll_width:(Number(wv)||54), code:(cv||null) };
+      var upd={ base_price:newPrice, roll_width:(Number(wv)||54), code:(cv||null), description:(dv||null) };
       if(newPrice!==oldPrice){ upd.price_source=(newPrice==null?null:'manual'); upd.price_updated_at=new Date().toISOString();
         if(newPrice!=null&&rec.price_source==='estimated') upd.price_note='Проверено вручную '+new Date().toLocaleDateString('ru-RU')+' (была оценка '+oldPrice+').'; }
       var r=await sb.from('fabrics').update(upd).eq('id',fid); if(r.error) throw r.error;
@@ -1469,8 +1639,11 @@ var PriceEngine=(function(){
   var r2=function(n){ return Math.round(n*100)/100; };
   /* b — строка style_params; rate — цена ткани CAD/ярд; cfg — {linRate,labRate,markup,overhead} */
   function priceBand(b,rate,cfg){
+    /* labour_cad (Фаза C, Σ часы_i × ставка_i из cost_ops) приоритетнее; null → старый путь labour_hours × labRate */
+    var labour = (b.labour_cad!=null && b.labour_cad!=='') ? Number(b.labour_cad)
+               : Number(b.labour_hours)*cfg.labRate;
     var cogs = Number(b.fabric_yd)*rate + Number(b.lining_yd)*cfg.linRate
-             + Number(b.labour_hours)*cfg.labRate + Number(b.hardware_pkg_cad);
+             + labour + Number(b.hardware_pkg_cad);
     var lf = r2(cogs*(1+cfg.overhead)*cfg.markup + Number(b.shipping_cad));
     var bo = r2(lf + Number(b.blackout_adder_cad));
     var ok = !!b.cordless_available;
@@ -1951,7 +2124,7 @@ MA.render=async function(){
   if(!window.sb){ card.innerHTML='<p class="sub">Сначала войди в базу.</p>'; return; }
   var res=await Promise.all([
     sb.from('styles').select('id,code,name').order('sort_order'),
-    sb.from('fabrics').select('id,name,base_price,roll_width').eq('is_deleted',false).order('name'),
+    sb.from('fabrics').select('id,name,base_price,roll_width,description').eq('is_deleted',false).order('name'),
     sb.from('masters').select('*')
   ]);
   for(var i=0;i<3;i++){ if(res[i].error){ card.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
@@ -2416,7 +2589,8 @@ window.MA=MA;
 (function(){
 var NL={masters:[],styles:[],fabrics:[],trims:[],tpls:[],colors:[],settings:{},
   styleId:null,fabricId:null,trimId:null,material:'Faux Linen',hero:'',roll:120,
-  modelNote:'',photoset:[],texts:null,grid:null,ch:'etsy_loganova',saved:null};
+  modelNote:'',photoset:[],texts:null,grid:null,ch:'etsy_loganova',saved:null,
+  decoTrims:[],romSrc:null,romMatId:null,romColors:[],romColor:''};
 var CHANNELS=[['etsy_loganova','Etsy · LOGANOVA'],['etsy_aspect','Etsy · Aspect'],['shopify','Shopify'],['amazon_handmade','Amazon Handmade']];
 var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
 function byId(id){return document.getElementById(id);}
@@ -2456,8 +2630,10 @@ NL.buildTexts=function(){
     /* ром (дизайн отделки): развёрнутое описание из справочника «Ромы» — секцией перед FIT */
     var rom=NL.trims.find(function(x){return x.id===NL.trimId;});
     if(rom&&rom.description&&t.description){
+      var rx=NL.romExec(), rxLine='';
+      if(rx&&rx.material)rxLine='\n'+(rx.source==='deco'?'Trim':'Accent fabric')+': '+rx.material+(rx.color?' — '+rx.color:'');
       t.description=t.description.replace('FIT — WE DO THE MATH\n',
-        'DESIGN DETAIL — '+(rom.code||'')+'\n'+rom.description+'\n\nFIT — WE DO THE MATH\n');
+        'DESIGN DETAIL — '+(rom.code||'')+'\n'+rom.description+rxLine+'\n\nFIT — WE DO THE MATH\n');
     }
     out[tp.channel]=t;
   });
@@ -2471,15 +2647,17 @@ NL.render=async function(){
   var res=await Promise.all([
     sb.from('masters').select('*'),
     sb.from('styles').select('id,code,name').order('sort_order'),
-    sb.from('fabrics').select('id,name,base_price,roll_width').eq('is_deleted',false).order('name'),
+    sb.from('fabrics').select('id,name,base_price,roll_width,description').eq('is_deleted',false).order('name'),
     sb.from('trims').select('id,code,description,price').order('code'),
     sb.from('listing_templates').select('*'),
-    sb.from('app_settings').select('key,value')
+    sb.from('app_settings').select('key,value'),
+    sb.from('deco_trims').select('id,code,name,is_deleted').order('sort_order').order('code')
   ]);
-  for(var i=0;i<6;i++){ if(res[i].error){ body.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
+  for(var i=0;i<7;i++){ if(res[i].error){ body.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
   NL.masters=res[0].data||[]; NL.styles=res[1].data||[]; NL.fabrics=res[2].data||[];
   NL.trims=res[3].data||[]; NL.allTpls=res[4].data||[];
   NL.settings={}; (res[5].data||[]).forEach(function(x){NL.settings[x.key]=x.value;});
+  NL.decoTrims=(res[6].data||[]).filter(function(t){return !t.is_deleted;});
   NL.pick();
 };
 NL.pick=function(){
@@ -2497,26 +2675,100 @@ NL.pick=function(){
   h+='<div><div class="fldlab">Ром — дизайн отделки (опционально)</div><select id="nlTrim" onchange="NL.setTrim(this.value)"><option value="">без рома</option>';
   NL.trims.forEach(function(t){ h+='<option value="'+t.id+'"'+(NL.trimId===t.id?' selected':'')+'>'+esc(t.code||'')+' '+esc((t.description||'').slice(0,30))+'</option>'; });
   h+='</select></div>';
-  h+='<div><div class="fldlab">Материал (для текстов)</div><select id="nlMat" onchange="NL.setMat(this.value)">';
-  ['Faux Linen','Linen','Cotton','Velvet','Sheer'].forEach(function(m){ h+='<option'+(NL.material===m?' selected':'')+'>'+m+'</option>'; });
+  /* Вышивка (опционально) — услуга S/M/L из себестоимости */
+  h+='<div><div class="fldlab">Вышивка (опционально)</div><select id="nlEmb" onchange="NL.setEmb(this.value)">';
+  [['','без вышивки'],['S','S — маленькая'],['M','M — средняя'],['L','L — большая']].forEach(function(p){
+    h+='<option value="'+p[0]+'"'+(NL.embroidery===p[0]?' selected':'')+'>'+p[1]+'</option>'; });
   h+='</select></div>';
+  /* материал для текстов определяется из ткани (имя+описание), дропдаун убран по решению N 2026-07-10 */
+  if(NL.fabricId)h+='<div><div class="fldlab">Материал (для текстов)</div><div style="padding:6px 2px;font-weight:600">'+esc(NL.material||'—')+' <span class="sub" style="font-weight:normal;font-size:11px">из ткани</span></div></div>';
+  /* исполнение рома: материал отделки (деко-трим или ткань) + свотч цвета — свойство листинга, не справочника */
+  if(NL.trimId){
+    h+='<div style="flex-basis:100%"><div class="fldlab">Исполнение рома — материал отделки и цвет</div>';
+    h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0">';
+    h+='<button class="mini'+(NL.romSrc==='deco'?' on':'')+'" onclick="NL.setRomSrc(\'deco\')">Деко-трим</button>';
+    h+='<button class="mini'+(NL.romSrc==='fabric'?' on':'')+'" onclick="NL.setRomSrc(\'fabric\')">Ткань</button>';
+    if(NL.romSrc==='deco'){
+      h+='<select id="nlRomMat" onchange="NL.setRomMat(this.value)"><option value="">— трим —</option>';
+      NL.decoTrims.forEach(function(t){ h+='<option value="'+t.id+'"'+(NL.romMatId===t.id?' selected':'')+'>'+esc(t.code||'')+(t.name?' · '+esc(t.name):'')+'</option>'; });
+      h+='</select>';
+    }else if(NL.romSrc==='fabric'){
+      h+='<select id="nlRomMat" onchange="NL.setRomMat(this.value)"><option value="">— ткань —</option>';
+      NL.fabrics.forEach(function(f){ h+='<option value="'+f.id+'"'+(NL.romMatId===f.id?' selected':'')+'>'+esc(f.name)+'</option>'; });
+      h+='</select>';
+    }
+    if(NL.romColor)h+='<span class="badge b-ok">цвет: '+esc(NL.romColor)+'</span>';
+    h+='</div>';
+    if(NL.romSrc&&NL.romMatId){
+      if(NL.romColors.length){
+        h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0">';
+        NL.romColors.forEach(function(c,i){
+          var sel=(c.color_name===NL.romColor);
+          h+='<div onclick="NL.setRomColor('+i+')" title="'+esc(c.color_name||'')+'" style="cursor:pointer;text-align:center;width:64px">';
+          if(c.swatch_url)h+='<img src="'+esc(c.swatch_url)+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:3px solid '+(sel?'#2e7d32':'transparent')+'">';
+          else h+='<div style="width:56px;height:56px;border-radius:6px;background:#eee;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#999;border:3px solid '+(sel?'#2e7d32':'transparent')+'">нет фото</div>';
+          h+='<div class="sub" style="font-size:10px;line-height:1.2;'+(sel?'font-weight:bold':'')+'">'+esc(c.color_name||'')+'</div></div>';
+        });
+        h+='</div>';
+      }else h+='<div class="sub" style="margin:4px 0">У выбранного материала нет цветов в базе свотчей — добавь на вкладке «'+(NL.romSrc==='deco'?'Trim Swatches':'Свотчи')+'».</div>';
+    }
+    h+='</div>';
+  }
   h+='<div style="flex-basis:100%"><div class="fldlab">Описание модели от Натальи (войдёт в описание листинга, блок WHY THIS SHADE)</div>'
     +'<textarea id="nlNote" rows="3" style="width:100%" placeholder="Например: особенность кроя, ручная отделка края, чем эта модель отличается…" onchange="NL.setNote(this.value)">'+esc(NL.modelNote||'')+'</textarea></div>';
   byId('nlPick').innerHTML=h;
 };
 NL.setNote=function(v){ NL.modelNote=(v||'').trim(); NL.texts=null; NL.build(); };
 NL.setStyle=function(v){ NL.styleId=v?Number(v):null; NL.texts=null; NL.build(); };
+/* материал для текстов — из имени+описания ткани (fabrics.description) */
+NL.matFrom=function(f){
+  if(!f)return 'Faux Linen';
+  var s=((f.name||'')+' '+(f.description||'')).toLowerCase();
+  if(/faux[\s-]?linen/.test(s))return 'Faux Linen';
+  if(/100\s*%\s*linen|pure linen|\blinen\b/.test(s))return 'Linen';
+  if(/velvet/.test(s))return 'Velvet';
+  if(/cotton/.test(s))return 'Cotton';
+  if(/sheer|voile/.test(s))return 'Sheer';
+  if(/polyester/.test(s))return 'Faux Linen'; /* голос бренда: полиэстеровые ткани продаём как faux linen */
+  return 'Faux Linen';
+};
 NL.setFab=async function(v){
   NL.fabricId=v?Number(v):null; NL.texts=null;
   if(NL.fabricId){
     var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;});
     NL.roll=(f&&f.roll_width)||120;
+    NL.material=NL.matFrom(f);
     var r=await sb.from('fabric_colors').select('color_name,color_code,status').eq('fabric_id',NL.fabricId).order('sort_order');
     NL.colors=(r.data||[]); NL.hero=(NL.colors[0]||{}).color_name||'';
   }else{ NL.colors=[]; NL.hero=''; }
   NL.build();
 };
-NL.setTrim=function(v){ NL.trimId=v?Number(v):null; NL.texts=null; NL.build(); };
+NL.setEmb=function(v){ NL.embroidery=v||''; NL.texts=null; NL.build(); };
+NL.setTrim=function(v){
+  NL.trimId=v?Number(v):null; NL.texts=null;
+  if(!NL.trimId){ NL.romSrc=null; NL.romMatId=null; NL.romColors=[]; NL.romColor=''; }
+  NL.build();
+};
+NL.setRomSrc=function(s){ NL.romSrc=(NL.romSrc===s?null:s); NL.romMatId=null; NL.romColors=[]; NL.romColor=''; NL.texts=null; NL.build(); };
+NL.setRomMat=async function(v){
+  NL.romMatId=v?Number(v):null; NL.romColors=[]; NL.romColor=''; NL.texts=null;
+  if(NL.romMatId){
+    var tbl=NL.romSrc==='deco'?'trim_colors':'fabric_colors';
+    var fk=NL.romSrc==='deco'?'trim_id':'fabric_id';
+    var r=await sb.from(tbl).select('color_name,color_code,swatch_url,status').eq(fk,NL.romMatId).order('sort_order');
+    if(!r.error)NL.romColors=r.data||[];
+  }
+  NL.build();
+};
+NL.setRomColor=function(i){ var c=NL.romColors[i]; NL.romColor=c&&c.color_name===NL.romColor?'':((c||{}).color_name||''); NL.texts=null; NL.build(); };
+NL.romExec=function(){
+  if(!NL.trimId||!NL.romSrc||!NL.romMatId)return null;
+  var it=(NL.romSrc==='deco'?NL.decoTrims:NL.fabrics).find(function(x){return x.id===NL.romMatId;})||{};
+  var c=NL.romColors.find(function(x){return x.color_name===NL.romColor;});
+  return { source:NL.romSrc, material_id:NL.romMatId,
+    material:(NL.romSrc==='deco'?((it.code||'')+(it.name?' '+it.name:'')):(it.name||'')).trim(),
+    color:NL.romColor||null, swatch_url:(c&&c.swatch_url)||null };
+};
 NL.setMat=function(v){ NL.material=v||'Faux Linen'; NL.texts=null; NL.build(); };
 
 /* --- Сборка --- */
@@ -2535,11 +2787,13 @@ NL.build=async function(){
   if(!NL.colors.length)warn.push('у ткани нет цветов в базе свотчей — {colours} пустой');
   if(!f.base_price)warn.push('у ткани нет цены $/ярд');
   var trim=NL.trims.find(function(x){return x.id===NL.trimId;});
+  var romX=NL.romExec();
+  if(trim&&(!romX||!romX.color))warn.push('у рома не выбран материал/цвет отделки (блок «Исполнение рома»)');
   var h='';
   if(warn.length)h+='<div class="note" style="border-left:4px solid #c8a03c;margin-bottom:10px">⚠ '+warn.map(esc).join(' · ')+'</div>';
   h+='<div class="lcard" style="padding:14px 16px">';
   h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">';
-  h+='<b style="font-size:16px">'+esc(f.name)+'</b><span class="sub">рулон '+NL.roll+'″ · '+esc(String(f.base_price))+' CAD/ярд'+(trim?' · ром '+esc(trim.code||''):'')+' · цвета: '+NL.colors.length+'</span>';
+  h+='<b style="font-size:16px">'+esc(f.name)+'</b><span class="sub">рулон '+NL.roll+'″ · '+esc(String(f.base_price))+' CAD/ярд'+(trim?' · ром '+esc(trim.code||'')+(romX&&romX.color?' ('+esc(romX.material)+' — '+esc(romX.color)+')':''):'')+' · цвета: '+NL.colors.length+'</span>';
   h+='<span style="flex:1"></span>';
   h+='<button class="mini" onclick="NL.preview()">👁 Preview</button>';
   h+='<button class="mini on" onclick="NL.save()">💾 Сохранить листинг (снапшот цен)</button>';
@@ -2664,7 +2918,7 @@ NL.save=async function(){
   if(bad.length){ alert('Лимиты не пройдены:\n— '+bad.slice(0,8).join('\n— ')); return; }
   var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;});
   var id='hub-'+slug(f.name).toLowerCase()+'-'+Date.now();
-  var tx=Object.assign({}, NL.texts, {_meta:{material:NL.material, model_note:NL.modelNote||null, hero_color:NL.hero||null}});
+  var tx=Object.assign({}, NL.texts, {_meta:{material:NL.material, model_note:NL.modelNote||null, hero_color:NL.hero||null, rom_exec:NL.romExec(), embroidery:NL.embroidery||null}});
   var row={ id:id, title:(NL.texts.etsy_loganova||{}).title||'', style_id:NL.styleId, fabric_id:NL.fabricId,
     trim_id:NL.trimId||null, sku:'RS-RL-'+slug(f.name)+'-CL', category:'Roman Shades', source:'hub',
     note:'Создан конструктором хаба '+new Date().toISOString().slice(0,10),
@@ -2736,7 +2990,7 @@ NL.expJson=function(){
   var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;})||{};
   dl(NL.fileBase()+'-listing.json', JSON.stringify({
     style_id:NL.styleId, fabric:{id:f.id,name:f.name,rate_cad_yd:f.base_price,roll:NL.roll},
-    trim_id:NL.trimId, material:NL.material, colours:NL.colors.map(function(c){return c.color_name;}),
+    trim_id:NL.trimId, rom_exec:NL.romExec(), embroidery:NL.embroidery||null, material:NL.material, colours:NL.colors.map(function(c){return c.color_name;}),
     texts:NL.texts, variants:NL.variants(), currency:'CAD', generated_at:new Date().toISOString()
   },null,2),'application/json');
 };
@@ -2754,6 +3008,697 @@ if(typeof showView==='function'){
 window.NL=NL;
 })();
 </script>
+
+<script>
+/* ===== COST TAB «Себестоимость» (Фазы A+B+C · 2026-07-10) =====
+   Ставки 5 работ (cost_ops) · каталог элементов (cost_elements) · состав стиля (style_bom,
+   правила количеств от размера, утверждение N) · нормы часов (style_ops, опорные точки).
+   Фаза B: конфигурации chain(base)/cordless/motor (часы конфига падают на base) + ром/трим-аддон
+   (config='rom': материал linear_m + доп. часы). Фаза C: генерация сетки style_params
+   (labour_hours/labour_cad/hardware_pkg_cad) с предпросмотром и журналом event_log. Все цены CAD. */
+(function(){
+var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function byId(id){return document.getElementById(id);}
+var CO={ops:[],els:[],bom:[],sops:[],styles:[],styleId:null,cfg:'base',testW:42,testH:60,incEst:true};
+/* Конфигурации исполнения (Фаза B): base=chain; часы/состав конфига при отсутствии строк падают на base */
+CO.CFGS=[{code:'base',name:'Chain (база)'},{code:'cordless',name:'Cordless'},{code:'motor',name:'Motor'}];
+
+/* --- RuleEngine: количество элемента для размера W×H (инчи) --- */
+CO.qty=function(rule,w,h,bomRows,elsByCode){
+  if(!rule)return 0;
+  switch(rule.type){
+    case 'fixed': return Number(rule.n)||0;
+    case 'per_width_in': return (Number(rule.k)||0)*w;
+    case 'per_height_in': return (Number(rule.k)||0)*h;
+    case 'per_width_m': return Math.round((Number(rule.k)||0)*w*0.0254*10000)/10000;
+    case 'per_height_m': return Math.round((Number(rule.k)||0)*h*0.0254*10000)/10000;
+    case 'factor_of': {
+      var src=(bomRows||[]).find(function(b){ var e=elsByCode[b._ecode]; return e&&e.code===rule.element_code; });
+      var base=src?CO.qty(src.qty_rule,w,h,bomRows,elsByCode):0;
+      return Math.round(base*(Number(rule.k)||0)*100)/100;
+    }
+    case 'table': {
+      var dim=(rule.by==='height')?h:w;
+      var rows=(rule.rows||[]).slice().sort(function(a,b){return a.max-b.max;});
+      for(var i=0;i<rows.length;i++){ if(dim<=rows[i].max) return Number(rows[i].qty)||0; }
+      return rows.length?Number(rows[rows.length-1].qty)||0:0;
+    }
+    case 'linear_m': /* метры = kw·W + kh·H (+c), для тримов/бортов: 3 стороны = kw:1,kh:2 */
+      return Math.round(((Number(rule.kw)||0)*w+(Number(rule.kh)||0)*h)*0.0254*10000)/10000 + (Number(rule.c)||0);
+    default: return 0;
+  }
+};
+CO.ruleLabel=function(rule){
+  if(!rule)return '—';
+  if(rule.type==='fixed')return rule.n+' на штору';
+  if(rule.type==='per_width_m')return rule.k+' × метры ширины';
+  if(rule.type==='per_height_m')return rule.k+' × метры высоты';
+  if(rule.type==='per_width_in')return rule.k+' × ширина (инчи)';
+  if(rule.type==='per_height_in')return rule.k+' × высота (инчи)';
+  if(rule.type==='factor_of')return rule.k+' × «'+rule.element_code+'»';
+  if(rule.type==='table')return 'таблица по '+(rule.by==='height'?'высоте':'ширине')+': '+(rule.rows||[]).map(function(r){return '≤'+r.max+'″→'+r.qty;}).join(' · ');
+  if(rule.type==='linear_m')return 'метры: '+(rule.kw||0)+'×W + '+(rule.kh||0)+'×H'+(rule.c?' + '+rule.c:'');
+  return JSON.stringify(rule);
+};
+/* интерполяция часов по площади между опорными точками */
+CO.hours=function(anchors,w,h){
+  if(!anchors||!anchors.length)return 0;
+  var a=anchors.slice().map(function(p){return {s:p.w*p.h,hours:Number(p.hours)||0,w:p.w,h:p.h};});
+  var hit=a.find(function(p){return p.w===w&&p.h===h;});
+  if(hit)return hit.hours;
+  a.sort(function(x,y){return x.s-y.s;});
+  var s=w*h;
+  if(s<=a[0].s)return a[0].hours;
+  if(s>=a[a.length-1].s)return a[a.length-1].hours;
+  for(var i=1;i<a.length;i++){
+    if(s<=a[i].s){
+      var t=(s-a[i-1].s)/(a[i].s-a[i-1].s);
+      return Math.round((a[i-1].hours+t*(a[i].hours-a[i-1].hours))*100)/100;
+    }
+  }
+  return a[a.length-1].hours;
+};
+
+/* --- Данные --- */
+CO.render=async function(view){
+  if(view)CO.view=view; if(!CO.view)CO.view='cost';
+  var body=byId(CO.view==='stylecalc'?'styleCalcBody':'costBody');
+  if(!body)return;
+  if(!window.sb){ body.innerHTML='<p class="sub">Сначала войди в базу (вкладка входа).</p>'; return; }
+  var res=await Promise.all([
+    sb.from('cost_ops').select('*').order('sort_order'),
+    sb.from('cost_elements').select('*').order('sort_order'),
+    sb.from('style_bom').select('*').order('sort_order'),
+    sb.from('style_ops').select('*'),
+    sb.from('styles').select('id,code,name').order('sort_order'),
+    sb.from('style_params').select('style_id'),
+    sb.from('deco_trims').select('id,code,name,price_cad_yd,is_deleted').order('sort_order')
+  ]);
+  for(var i=0;i<7;i++){ if(res[i].error){ body.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
+  CO.ops=res[0].data||[]; CO.els=res[1].data||[]; CO.bom=res[2].data||[]; CO.sops=res[3].data||[]; CO.styles=res[4].data||[];
+  CO.bandCounts={}; (res[5].data||[]).forEach(function(x){ CO.bandCounts[x.style_id]=(CO.bandCounts[x.style_id]||0)+1; });
+  CO.dts=(res[6].data||[]).filter(function(t){return !t.is_deleted;});
+  CO.draw();
+};
+CO.elsByCode=function(){ var m={}; CO.els.forEach(function(e){m[e.code]=e;}); return m; };
+/* часы работы для конфига: своей строки нет → фолбэк на base (Фаза B) */
+CO.sop=function(opId,cfg){
+  cfg=cfg||CO.cfg;
+  var so=CO.sops.find(function(x){return x.style_id===CO.styleId&&x.op_id===opId&&x.config===cfg;});
+  if(so)return {so:so,fb:false};
+  if(cfg!=='base'){
+    var b=CO.sops.find(function(x){return x.style_id===CO.styleId&&x.op_id===opId&&x.config==='base';});
+    if(b)return {so:b,fb:true};
+  }
+  return {so:null,fb:false};
+};
+CO.setCfg=function(c){ CO.cfg=c; CO.openOp=null; CO.draft=null; CO.draw(); };
+CO.draw=function(){
+  if(CO.view==='stylecalc'){ var el=byId('styleCalcBody'); if(el)el.innerHTML=CO.drawStyle(); }
+  else { var el2=byId('costBody'); if(el2)el2.innerHTML=CO.drawCost(); }
+};
+/* ===== Вкладка «Себестоимость»: только ставки работ + каталог элементов ===== */
+CO.CATNAMES={hardware:'Фурнитура',lining:'Подкладка',consumable:'Расходники',packaging:'Упаковка',trim:'Трим / ром',service:'Услуги (вышивка и др.)'};
+CO.drawCost=function(){
+  var inp='style="box-sizing:border-box;border:1px solid var(--line2);border-radius:6px;padding:4px 6px;font:inherit;width:100%"';
+  var h='';
+  /* 1 · Ставки работ — крупные плашки */
+  h+='<div class="cocard" style="max-width:1560px"><h2>1 · Ставки работ <span class="sub" style="font-weight:normal;font-size:12px">CAD/час · действуют на все стили и расчёты</span></h2>';
+  h+='<div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">';
+  CO.ops.forEach(function(o){
+    h+='<div class="ratetile"><div class="rt-name">'+esc(o.name)+'</div>'
+      +'<input type="number" step="0.5" value="'+esc(String(o.rate_cad_hr))+'" onchange="CO.setOpRate('+o.id+',this.value)">'
+      +'<div class="rt-unit">CAD / час</div></div>';
+  });
+  h+='</div></div>';
+  /* 2 · Каталог элементов — сбалансированные колонки по группам */
+  h+='<div class="cocard" style="max-width:1660px"><h2>2 · Каталог элементов <span class="sub" style="font-weight:normal;font-size:12px">закупочные цены, CAD · правится на месте · розовая цена = не заполнена · полное примечание — при наведении</span></h2>';
+  /* категория trim скрыта: цены тримов живут во вкладке «Тримы» (deco_trims), решение N 2026-07-10 */
+  var groups={}; CO.els.forEach(function(e){ if(e.category==='trim')return; var c=e.category||'other'; (groups[c]=groups[c]||[]).push(e); });
+  var CATORDER=['hardware','lining','packaging','consumable','service'];
+  var cats=CATORDER.filter(function(c){return groups[c];}).concat(Object.keys(groups).filter(function(c){return CATORDER.indexOf(c)<0;}).sort());
+  h+='<div class="elcols">';
+  cats.forEach(function(cat){
+    h+='<div class="elgroup"><h3>'+esc(CO.CATNAMES[cat]||cat)+'<span class="cnt">'+groups[cat].length+'</span></h3>';
+    groups[cat].forEach(function(e){
+      var p0=(Number(e.price_cad)===0&&e.is_active);
+      h+='<div class="elrow"'+(e.is_active?'':' style="opacity:.45" title="элемент выключен из расчётов"')+'>'
+        +'<div class="eln"><input class="nm" value="'+esc(e.name)+'" onchange="CO.setEl('+e.id+',\'name\',this.value)">'
+        +'<input class="nt" value="'+esc(e.note||'')+'" placeholder="примечание…" title="'+esc(e.note||'')+'" onchange="CO.setEl('+e.id+',\'note\',this.value)"></div>'
+        +'<div class="elu"><select title="единица закупки" onchange="CO.setEl('+e.id+',\'unit\',this.value)">'+['ea','m','yd','in'].map(function(u){return '<option value="'+u+'"'+(e.unit===u?' selected':'')+'>'+({ea:'шт',m:'м',yd:'ярд',in:'дюйм'}[u]||u)+'</option>';}).join('')+'</select></div>'
+        +'<div class="elp'+(p0?' price0':'')+'"'+(p0?' title="закупочная цена не заполнена"':'')+'><input type="number" step="0.0001" value="'+esc(String(e.price_cad))+'" onchange="CO.setEl('+e.id+',\'price_cad\',this.value)"><div class="cur">CAD за ед.</div></div>'
+        +'</div>';
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<div style="display:flex;gap:8px;margin-top:12px;align-items:center"><input id="coNewEl" placeholder="Название нового элемента" '+inp.replace('width:100%','width:240px')+'>';
+  h+='<select id="coNewElCat" style="font:inherit;padding:4px 6px;border:1px solid var(--line2);border-radius:6px">'+Object.keys(CO.CATNAMES).map(function(c){return '<option value="'+c+'">'+esc(CO.CATNAMES[c])+'</option>';}).join('')+'</select>';
+  h+='<button class="mini" onclick="CO.addEl()">+ элемент</button></div></div>';
+  return h;
+};
+/* ===== Вкладка «Расчёт стилей»: плашки стилей + детали выбранного ===== */
+CO.pickStyle=function(id){ CO.styleId=Number(id); CO.openOp=null; CO.draft=null; CO.gen=null; CO.genErr=null; CO.draw(); };
+CO.drawStyle=function(){
+  var h='';
+  /* плашки стилей */
+  h+='<div class="stylecards">';
+  CO.styles.forEach(function(s){
+    var nBom=CO.bom.filter(function(b){return b.style_id===s.id&&b.config==='base';}).length;
+    var nAppr=CO.bom.filter(function(b){return b.style_id===s.id&&b.config==='base'&&b.approved;}).length;
+    var nOps=CO.sops.filter(function(x){return x.style_id===s.id&&x.config==='base'&&(x.anchors||[]).length;}).length;
+    var nBands=(CO.bandCounts&&CO.bandCounts[s.id])||0;
+    h+='<div class="stylecard'+(CO.styleId===s.id?' on':'')+'" onclick="CO.pickStyle('+s.id+')">'
+      +'<div class="sc-name">'+esc(s.name||s.code)+'</div>'
+      +'<div class="sc-code">'+esc(s.code||'')+'</div>';
+    if(nBom||nOps||nBands){
+      h+='<div class="sc-meta">'
+        +(nBom?'<span>состав '+nAppr+'/'+nBom+(nAppr===nBom?' ✓':'')+'</span>':'<span>состава нет</span>')
+        +(nOps?'<span>часы: '+nOps+' работ</span>':'<span>часов нет</span>')
+        +(nBands?'<span>'+nBands+' бэндов</span>':'<span>сетки нет</span>')
+        +'</div>';
+    } else h+='<div class="sc-empty">пусто — выбери и заведи состав</div>';
+    h+='</div>';
+  });
+  h+='</div>';
+  if(CO.styleId==null){ h+='<p class="sub">Кликни плашку стиля, чтобы открыть состав, часы, ром-аддер и генерацию сетки.</p>'; return h; }
+  var sname=(CO.styles.find(function(s){return s.id===CO.styleId;})||{}).name||'';
+  h+='<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">';
+  h+='<div style="flex:1.1;min-width:600px;max-width:940px">';
+  /* 1 · Состав стиля */
+  h+='<div class="cocard"><h2>1 · Состав стиля «'+esc(sname)+'» — что входит и в каком количестве</h2>';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0">';
+  /* Фаза B: переключатель конфигурации исполнения */
+  h+='<span style="display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden">';
+  CO.CFGS.forEach(function(c){
+    h+='<button class="mini" style="border:none;border-radius:0;'+(CO.cfg===c.code?'background:#2f2a24;color:#fff':'background:#fff')+'" onclick="CO.setCfg(\''+c.code+'\')">'+esc(c.name)+'</button>';
+  });
+  h+='</span>';
+  h+='<span class="sub">проверка на размере</span>';
+  h+='<input type="number" style="width:58px;border:1px solid var(--line2);border-radius:6px;padding:4px;font:inherit;text-align:right" value="'+CO.testW+'" onchange="CO.testW=Number(this.value)||42;CO.draw()"><span class="sub">W″</span>';
+  h+='<input type="number" style="width:58px;border:1px solid var(--line2);border-radius:6px;padding:4px;font:inherit;text-align:right" value="'+CO.testH+'" onchange="CO.testH=Number(this.value)||60;CO.draw()"><span class="sub">H″</span>';
+  h+='<span style="flex:1"></span><button class="mini" onclick="CO.approveAll()">✓ Утвердить весь состав</button></div>';
+  var rows=CO.bom.filter(function(b){return b.style_id===CO.styleId&&b.config===CO.cfg;});
+  var byCode=CO.elsByCode();
+  rows.forEach(function(b){ var e=CO.els.find(function(x){return x.id===b.element_id;}); b._ecode=e?e.code:''; });
+  if(!rows.length)h+='<p class="sub">Для стиля «'+esc(sname)+'» состав ещё не заведён — добавь элементы ниже.</p>';
+  else{
+    var total=0;
+    h+='<table class="cotable"><thead><tr><th style="width:24px">✓</th><th>Элемент</th><th>Правило количества <span style="font-weight:normal">(клик — править)</span></th><th style="text-align:right;width:90px">на '+CO.testW+'×'+CO.testH+'″</th><th style="text-align:right;width:70px">CAD</th><th style="width:28px"></th></tr></thead><tbody>';
+    rows.forEach(function(b){
+      var e=CO.els.find(function(x){return x.id===b.element_id;})||{};
+      var q=CO.qty(b.qty_rule,CO.testW,CO.testH,rows,byCode);
+      var cost=Math.round(q*Number(e.price_cad||0)*100)/100; total+=cost;
+      h+='<tr><td><input type="checkbox"'+(b.approved?' checked':'')+' onchange="CO.setBom('+b.id+',\'approved\',this.checked)" title="утверждено" style="width:auto"></td>'
+        +'<td style="white-space:nowrap">'+esc(e.name||'?')+(e.is_active?'':' <span class="cobadge">выкл</span>')+'</td>'
+        +'<td class="conote" style="cursor:pointer" title="править правило" onclick="CO.editRule('+b.id+')">'+esc(CO.ruleLabel(b.qty_rule))+'</td>'
+        +'<td style="text-align:right;white-space:nowrap">'+q+' <span class="conote">'+esc(e.unit||'')+'</span></td>'
+        +'<td style="text-align:right">'+cost.toFixed(2)+'</td>'
+        +'<td><button class="mini del" onclick="CO.delBom('+b.id+')">🗑</button></td></tr>';
+    });
+    h+='<tr><td colspan="4" style="text-align:right;border-bottom:none"><b>Фурнитура итого:</b></td><td style="text-align:right;border-bottom:none"><b>'+total.toFixed(2)+'</b></td><td style="border-bottom:none"></td></tr>';
+    h+='</tbody></table>';
+    var appr=rows.filter(function(b){return b.approved;}).length;
+    h+='<p class="sub" style="margin:6px 0 0">Утверждено '+appr+' из '+rows.length+(appr<rows.length?' — состав черновик, пока не утверждён весь.':' ✓ состав утверждён.')+'</p>';
+  }
+  h+='<div style="display:flex;gap:8px;margin-top:8px"><select id="coAddBom" style="font:inherit;padding:4px 6px;border:1px solid var(--line2);border-radius:6px">'+CO.els.filter(function(e){return e.is_active;}).map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select><button class="mini" onclick="CO.addBom()">+ в состав</button></div></div>';
+  /* 2 · Нормы часов */
+  h+='<div class="cocard"><h2>2 · Нормы часов стиля «'+esc(sname)+'» <span class="sub" style="font-weight:normal;font-size:12px">опорные точки · интерполяция по площади</span></h2>';
+  h+='<table class="cotable" style="margin-top:6px"><thead><tr><th>Работа</th><th style="text-align:right">точек</th><th style="text-align:right">часы на '+CO.testW+'×'+CO.testH+'″</th><th style="text-align:right">CAD</th><th style="width:110px"></th></tr></thead><tbody>';
+  var hoursTotal=0;
+  CO.ops.forEach(function(o){
+    var sr=CO.sop(o.id), so=sr.so;
+    var pts=(so&&so.anchors)||[];
+    var hrs=CO.hours(pts,CO.testW,CO.testH);
+    var cad=Math.round(hrs*o.rate_cad_hr*100)/100; hoursTotal+=cad;
+    var est=(so&&so.note&&so.note.indexOf('ОЦЕНКА')>-1)?' <span class="cobadge" title="'+esc(so.note)+'">оценка</span>':'';
+    if(sr.fb)est+=' <span class="cobadge" title="своих точек у конфигурации нет — используются часы базы (chain); «править точки» создаст свои">= база</span>';
+    h+='<tr'+(CO.openOp===o.id?' style="background:#faf8f4"':'')+'><td>'+esc(o.name)+est+'</td><td style="text-align:right">'+pts.length+'</td><td style="text-align:right">'+hrs+'</td><td style="text-align:right">'+cad.toFixed(2)+'</td>'
+      +'<td style="text-align:right"><button class="mini'+(CO.openOp===o.id?' on':'')+'" onclick="CO.editAnchors('+o.id+')">'+(CO.openOp===o.id?'закрыть':'править точки')+'</button></td></tr>';
+  });
+  h+='<tr><td colspan="3" style="text-align:right;border-bottom:none"><b>Работы итого:</b></td><td style="text-align:right;border-bottom:none"><b>'+hoursTotal.toFixed(2)+'</b></td><td style="border-bottom:none"></td></tr>';
+  h+='</tbody></table>';
+  if(CO.openOp!=null&&(CO.anchCfg||CO.cfg)!=='rom'){
+    var oo=CO.ops.find(function(x){return x.id===CO.openOp;})||{};
+    var oso=CO.sops.find(function(x){return x.style_id===CO.styleId&&x.op_id===CO.openOp&&x.config===(CO.anchCfg||CO.cfg);});
+    h+='<div style="border:1px solid var(--line2);border-radius:8px;padding:10px 12px;margin-top:8px;background:#faf8f4">';
+    h+='<b>Точки «'+esc(oo.name)+'»</b> <span class="conote">размер → часы · правь, добавляй, удаляй · часы промежуточных размеров досчитаются сами</span>';
+    h+='<table class="cotable" style="margin-top:6px;max-width:400px;background:#fff;border-radius:6px"><thead><tr><th>Ширина ″</th><th>Высота ″</th><th>Часы</th><th style="width:28px"></th></tr></thead><tbody>';
+    (CO.draft||[]).forEach(function(p,i){
+      h+='<tr><td><input type="number" class="num" value="'+p.w+'" onchange="CO.anchSet('+i+',\'w\',this.value)"></td>'
+        +'<td><input type="number" class="num" value="'+p.h+'" onchange="CO.anchSet('+i+',\'h\',this.value)"></td>'
+        +'<td><input type="number" step="0.05" class="num" value="'+p.hours+'" onchange="CO.anchSet('+i+',\'hours\',this.value)"></td>'
+        +'<td><button class="mini del" onclick="CO.anchDel('+i+')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table>';
+    if(oso&&oso.note)h+='<div class="conote" style="margin-top:6px">'+esc(oso.note)+'</div>';
+    h+='<div style="display:flex;gap:8px;margin-top:8px"><button class="mini" onclick="CO.anchAdd()">+ точка</button><span style="flex:1"></span>'
+      +'<button class="mini" onclick="CO.openOp=null;CO.draft=null;CO.draw()">Отмена</button>'
+      +'<button class="mini on" onclick="CO.anchSave()">💾 Сохранить точки</button></div>';
+    h+='</div>';
+  }
+  h+='<p class="sub" style="margin:6px 0 0">Для нового стиля достаточно 3 точек: малая / средняя / большая штора — остальное досчитается по площади.</p></div>';
+  /* ===== 3 · Ром / деко-трим — аддер от размера (Фаза B) ===== */
+  h+='<div class="cocard"><h2>3 · Ром / деко-трим <span class="sub" style="font-weight:normal;font-size:12px">аддер к себестоимости · зависит от размера · поверх любой конфигурации</span></h2>';
+  var romBom=CO.bom.filter(function(b){return b.style_id===CO.styleId&&b.config==='rom';});
+  romBom.forEach(function(b){ var e=CO.els.find(function(x){return x.id===b.element_id;}); b._ecode=e?e.code:''; });
+  var romTotal=0;
+  h+='<table class="cotable" style="margin-top:6px"><thead><tr><th style="width:24px">✓</th><th>Составляющая</th><th>Правило <span style="font-weight:normal">(клик — править)</span></th><th style="text-align:right;width:90px">на '+CO.testW+'×'+CO.testH+'″</th><th style="text-align:right;width:70px">CAD</th><th style="width:28px"></th></tr></thead><tbody>';
+  romBom.forEach(function(b){
+    var e=CO.els.find(function(x){return x.id===b.element_id;})||{};
+    var q=CO.qty(b.qty_rule,CO.testW,CO.testH,romBom,byCode);
+    var cost, nameCell;
+    if(e.code==='rom_trim'){
+      /* материал рома = конкретный деко-трим: цена CAD/ярд из вкладки «Тримы» */
+      var dt=(CO.dts||[]).find(function(x){return x.id===CO.romTrimId;});
+      var pyd=dt?Number(dt.price_cad_yd||0):0;
+      cost=Math.round(q/0.9144*pyd*100)/100;
+      nameCell='<select onchange="CO.romTrimId=Number(this.value)||null;CO.draw()" style="font:inherit;padding:2px 4px;border:1px solid var(--line2);border-radius:6px;max-width:220px"><option value="">— выбери трим —</option>'
+        +(CO.dts||[]).map(function(t){return '<option value="'+t.id+'"'+(CO.romTrimId===t.id?' selected':'')+'>'+esc((t.code||'')+(t.name?' · '+t.name:''))+(t.price_cad_yd?' · '+t.price_cad_yd+'/ярд':' · цены нет')+'</option>';}).join('')
+        +'</select>'+(dt&&!pyd?' <span class="cobadge" title="заполни цену во вкладке «Тримы»">цены нет</span>':'');
+    }else{
+      cost=Math.round(q*Number(e.price_cad||0)*100)/100;
+      nameCell=esc(e.name||'?')+(Number(e.price_cad)>0?'':' <span class="cobadge" title="закупочная цена не заполнена">цена 0</span>');
+    }
+    romTotal+=cost;
+    h+='<tr><td><input type="checkbox"'+(b.approved?' checked':'')+' onchange="CO.setBom('+b.id+',\'approved\',this.checked)" style="width:auto"></td>'
+      +'<td style="white-space:nowrap">'+nameCell+'</td>'
+      +'<td class="conote" style="cursor:pointer" onclick="CO.editRule('+b.id+')">'+esc(CO.ruleLabel(b.qty_rule))+'</td>'
+      +'<td style="text-align:right;white-space:nowrap">'+q+' <span class="conote">'+esc(e.unit||'')+'</span></td>'
+      +'<td style="text-align:right">'+cost.toFixed(2)+'</td>'
+      +'<td><button class="mini del" onclick="CO.delBom('+b.id+')">🗑</button></td></tr>';
+  });
+  var romOps=CO.sops.filter(function(x){return x.style_id===CO.styleId&&x.config==='rom';});
+  romOps.forEach(function(so){
+    var o=CO.ops.find(function(x){return x.id===so.op_id;})||{};
+    var hrs=CO.hours(so.anchors||[],CO.testW,CO.testH);
+    var cad=Math.round(hrs*Number(o.rate_cad_hr||0)*100)/100; romTotal+=cad;
+    var est=(so.note&&so.note.indexOf('ОЦЕНКА')>-1)?' <span class="cobadge" title="'+esc(so.note)+'">оценка</span>':'';
+    h+='<tr><td></td><td style="white-space:nowrap">Работа: '+esc(o.name||'?')+est+'</td>'
+      +'<td class="conote">'+((so.anchors||[]).length)+' точек · интерполяция по площади</td>'
+      +'<td style="text-align:right">'+hrs+' <span class="conote">ч</span></td>'
+      +'<td style="text-align:right">'+cad.toFixed(2)+'</td>'
+      +'<td style="text-align:right"><button class="mini'+(CO.openOp===so.op_id&&CO.anchCfg==='rom'?' on':'')+'" onclick="CO.editAnchors('+so.op_id+',\'rom\')">'+(CO.openOp===so.op_id&&CO.anchCfg==='rom'?'✕':'✎')+'</button></td></tr>';
+  });
+  h+='<tr><td colspan="4" style="text-align:right;border-bottom:none"><b>Ром-аддер к себестоимости:</b></td><td style="text-align:right;border-bottom:none"><b>'+romTotal.toFixed(2)+'</b></td><td style="border-bottom:none"></td></tr>';
+  h+='</tbody></table>';
+  if(CO.openOp!=null&&CO.anchCfg==='rom'){
+    var roo=CO.ops.find(function(x){return x.id===CO.openOp;})||{};
+    h+='<div style="border:1px solid var(--line2);border-radius:8px;padding:10px 12px;margin-top:8px;background:#faf8f4">';
+    h+='<b>Точки ром-работы «'+esc(roo.name)+'»</b> <span class="conote">размер шторы → доп. часы на ром</span>';
+    h+='<table class="cotable" style="margin-top:6px;max-width:400px;background:#fff;border-radius:6px"><thead><tr><th>Ширина ″</th><th>Высота ″</th><th>Часы</th><th style="width:28px"></th></tr></thead><tbody>';
+    (CO.draft||[]).forEach(function(p,i){
+      h+='<tr><td><input type="number" class="num" value="'+p.w+'" onchange="CO.anchSet('+i+',\'w\',this.value)"></td>'
+        +'<td><input type="number" class="num" value="'+p.h+'" onchange="CO.anchSet('+i+',\'h\',this.value)"></td>'
+        +'<td><input type="number" step="0.05" class="num" value="'+p.hours+'" onchange="CO.anchSet('+i+',\'hours\',this.value)"></td>'
+        +'<td><button class="mini del" onclick="CO.anchDel('+i+')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table>';
+    h+='<div style="display:flex;gap:8px;margin-top:8px"><button class="mini" onclick="CO.anchAdd()">+ точка</button><span style="flex:1"></span>'
+      +'<button class="mini" onclick="CO.openOp=null;CO.draft=null;CO.anchCfg=null;CO.draw()">Отмена</button>'
+      +'<button class="mini on" onclick="CO.anchSave()">💾 Сохранить точки</button></div>';
+    h+='</div>';
+  }
+  h+='<div style="display:flex;gap:8px;margin-top:8px;align-items:center">'
+    +'<select id="coRomEl" style="font:inherit;padding:4px 6px;border:1px solid var(--line2);border-radius:6px">'+CO.els.filter(function(e){return e.is_active;}).map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join('')+'</select>'
+    +'<button class="mini" onclick="CO.addRomBom()">+ материал</button>'
+    +'<select id="coRomOp" style="font:inherit;padding:4px 6px;border:1px solid var(--line2);border-radius:6px">'+CO.ops.map(function(o){return '<option value="'+o.id+'">'+esc(o.name)+'</option>';}).join('')+'</select>'
+    +'<button class="mini" onclick="CO.addRomOp()">+ работа</button></div>';
+  h+='<p class="sub" style="margin:6px 0 0">Правило по умолчанию — борт на 3 стороны: метры = 1×W + 2×H. Конкретный Rom-дизайн (Rom 001…) может переопределить правило и часы.</p></div>';
+  /* ===== 4 · Генерация сетки цен (Фаза C) ===== */
+  h+='<div class="cocard"><h2>4 · Сетка цен (style_params) <span class="sub" style="font-weight:normal;font-size:12px">генерация из себестоимости · база chain · предпросмотр перед записью</span></h2>';
+  h+='<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0">';
+  h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" style="width:auto"'+(CO.incEst?' checked':'')+' onchange="CO.incEst=this.checked;CO.gen=null;CO.draw()">включать работы-оценки (Админ/Тест/Упаковка)</label>';
+  h+='<span class="sub">ткань для предпросмотра цен</span><input type="number" step="0.01" style="width:80px;border:1px solid var(--line2);border-radius:6px;padding:4px;font:inherit;text-align:right" value="'+(CO.refRate||74.95)+'" onchange="CO.refRate=Number(this.value)||74.95;CO.gen=null;CO.draw()"><span class="sub">CAD/ярд</span>';
+  h+='<span style="flex:1"></span><button class="mini on" onclick="CO.generate()">⚙ Сгенерировать (предпросмотр)</button></div>';
+  if(CO.genErr)h+='<p class="sub" style="color:#a33">'+esc(CO.genErr)+'</p>';
+  if(CO.gen){
+    var rolls={}; CO.gen.rows.forEach(function(g){ (rolls[g.roll]=rolls[g.roll]||[]).push(g); });
+    Object.keys(rolls).sort(function(a,b){return b-a;}).forEach(function(rw){
+      var list=rolls[rw], changed=list.filter(function(g){return g.dLab!==0||g.dHw!==0;}).length;
+      h+='<div style="margin-top:8px"><b>Рулон '+rw+'″</b> <span class="sub">'+list.length+' бэндов · изменится '+changed+'</span>';
+      h+='<button class="mini on" style="margin-left:10px" onclick="CO.writeGrid('+rw+')">💾 Записать '+rw+'″</button></div>';
+      h+='<table class="cotable" style="margin-top:4px"><thead><tr><th>Бэнд H×W</th><th style="text-align:right">часы стар→нов</th><th style="text-align:right">фурнитура стар→нов</th><th style="text-align:right">LF '+(CO.refRate||74.95)+' стар→нов</th><th style="text-align:right">Δ розницы</th></tr></thead><tbody>';
+      list.forEach(function(g){
+        var hl=(Math.abs(g.dLF)>=0.01)?' style="background:'+(g.dLF>0?'#fdf6ec':'#eef6ee')+'"':'';
+        h+='<tr'+hl+'><td>'+g.hb+' × '+g.wb+'</td>'
+          +'<td style="text-align:right">'+g.oldLab+' → <b>'+g.newLab+'</b></td>'
+          +'<td style="text-align:right">'+g.oldHw.toFixed(2)+' → <b>'+g.newHw.toFixed(2)+'</b></td>'
+          +'<td style="text-align:right">'+g.oldLF.toFixed(2)+' → <b>'+g.newLF.toFixed(2)+'</b></td>'
+          +'<td style="text-align:right;'+(g.dLF>0?'color:#a06a00':g.dLF<0?'color:#2e7d32':'')+'">'+(g.dLF>0?'+':'')+g.dLF.toFixed(2)+'</td></tr>';
+      });
+      h+='</tbody></table>';
+    });
+    h+='<p class="sub" style="margin:6px 0 0">Запись меняет только labour_hours / labour_cad / hardware_pkg_cad. Ткань, подкладка, шиппинг и аддеры бэндов не трогаются. Действие журналируется в event_log.</p>';
+  }
+  h+='</div>';
+  h+='</div></div>';
+  h+='<p class="sub" style="margin:4px 0 0">Ставки CAD/час и закупочные цены элементов правятся во вкладке «Себестоимость» — здесь они применяются к выбранному стилю.</p>';
+  return h;
+};
+
+/* --- Записи --- */
+CO.setOpRate=async function(id,v){ var r=await sb.from('cost_ops').update({rate_cad_hr:Number(v)||0,updated_at:new Date().toISOString()}).eq('id',id); if(r.error)alert(r.error.message); else{var o=CO.ops.find(function(x){return x.id===id;}); if(o)o.rate_cad_hr=Number(v)||0; CO.draw();} };
+CO.setEl=async function(id,k,v){ var patch={updated_at:new Date().toISOString()}; patch[k]=(k==='price_cad')?(Number(v)||0):(k==='is_active'?(v===true||v==='true'):v);
+  var r=await sb.from('cost_elements').update(patch).eq('id',id); if(r.error)alert(r.error.message); else{var e=CO.els.find(function(x){return x.id===id;}); if(e)e[k]=patch[k]; CO.draw();} };
+CO.addEl=async function(){ var nm=(byId('coNewEl').value||'').trim(); if(!nm)return;
+  var code=nm.toLowerCase().replace(/[^a-z0-9а-яё]+/g,'_').slice(0,30)+'_'+Date.now()%1000;
+  var catSel=byId('coNewElCat'); var cat=(catSel&&catSel.value)||'hardware';
+  var r=await sb.from('cost_elements').insert({code:code,name:nm,unit:'ea',price_cad:0,category:cat,sort_order:CO.els.length+1}).select().single();
+  if(r.error)alert(r.error.message); else{CO.els.push(r.data); CO.draw();} };
+CO.setStyle=function(v){ CO.styleId=Number(v); CO.draw(); };
+CO.setBom=async function(id,k,v){ var patch={updated_at:new Date().toISOString()}; patch[k]=v;
+  var r=await sb.from('style_bom').update(patch).eq('id',id); if(r.error)alert(r.error.message); else{var b=CO.bom.find(function(x){return x.id===id;}); if(b)b[k]=v; CO.draw();} };
+CO.approveAll=async function(){ var ids=CO.bom.filter(function(b){return b.style_id===CO.styleId&&b.config===CO.cfg&&!b.approved;}).map(function(b){return b.id;});
+  if(!ids.length)return; var r=await sb.from('style_bom').update({approved:true,updated_at:new Date().toISOString()}).in('id',ids);
+  if(r.error)alert(r.error.message); else{CO.bom.forEach(function(b){if(ids.indexOf(b.id)>-1)b.approved=true;}); CO.draw();} };
+CO.addBom=async function(){ var eid=Number(byId('coAddBom').value); if(!eid||!CO.styleId)return;
+  var r=await sb.from('style_bom').insert({style_id:CO.styleId,element_id:eid,config:CO.cfg,qty_rule:{type:'fixed',n:1},sort_order:CO.bom.length+1}).select().single();
+  if(r.error)alert(r.error.message.indexOf('duplicate')>-1?'Этот элемент уже в составе стиля':r.error.message); else{CO.bom.push(r.data); CO.draw();} };
+CO.delBom=async function(id){ if(!confirm('Убрать элемент из состава стиля?'))return;
+  var r=await sb.from('style_bom').delete().eq('id',id); if(r.error)alert(r.error.message); else{CO.bom=CO.bom.filter(function(b){return b.id!==id;}); CO.draw();} };
+CO.editRule=async function(id){ var b=CO.bom.find(function(x){return x.id===id;}); if(!b)return;
+  var cur=JSON.stringify(b.qty_rule);
+  var nv=prompt('Правило количества (JSON).\nТипы: {"type":"fixed","n":1} · {"type":"per_width_m","k":6} · {"type":"per_width_in","k":0.5} · {"type":"factor_of","element_code":"drum","k":1.61} · {"type":"table","by":"width","rows":[{"max":32,"qty":2},{"max":999,"qty":4}]}',cur);
+  if(nv==null||nv===cur)return;
+  var rule; try{ rule=JSON.parse(nv); }catch(e){ alert('Невалидный JSON'); return; }
+  CO.setBom(id,'qty_rule',rule); };
+CO.editAnchors=function(opId,cfg){
+  cfg=cfg||CO.cfg;
+  if(CO.openOp===opId&&CO.anchCfg===cfg){ CO.openOp=null; CO.draft=null; CO.anchCfg=null; CO.draw(); return; }
+  var so=CO.sops.find(function(x){return x.style_id===CO.styleId&&x.op_id===opId&&x.config===cfg;});
+  if(!so&&cfg!=='base'&&cfg!=='rom'){ /* конфиг без своих точек — стартуем от копии базы */
+    so=CO.sops.find(function(x){return x.style_id===CO.styleId&&x.op_id===opId&&x.config==='base';});
+  }
+  CO.openOp=opId; CO.anchCfg=cfg;
+  CO.draft=JSON.parse(JSON.stringify((so&&so.anchors)||[]));
+  if(!CO.draft.length)CO.draft=[{w:24,h:36,hours:0},{w:48,h:60,hours:0},{w:96,h:108,hours:0}];
+  CO.draw();
+};
+CO.anchSet=function(i,k,v){ if(CO.draft&&CO.draft[i])CO.draft[i][k]=Number(v)||0; CO.draw(); };
+CO.anchAdd=function(){ (CO.draft=CO.draft||[]).push({w:0,h:0,hours:0}); CO.draw(); };
+CO.anchDel=function(i){ if(CO.draft){CO.draft.splice(i,1); CO.draw();} };
+CO.anchSave=async function(){
+  var pts=(CO.draft||[]).filter(function(p){return p.w>0&&p.h>0;});
+  if(!pts.length){ alert('Нужна хотя бы одна точка с шириной и высотой'); return; }
+  var cfg=CO.anchCfg||CO.cfg;
+  var so=CO.sops.find(function(x){return x.style_id===CO.styleId&&x.op_id===CO.openOp&&x.config===cfg;});
+  if(so){ var r=await sb.from('style_ops').update({anchors:pts,updated_at:new Date().toISOString()}).eq('id',so.id); if(r.error){alert(r.error.message);return;} so.anchors=pts; }
+  else{ var r2=await sb.from('style_ops').insert({style_id:CO.styleId,op_id:CO.openOp,config:cfg,anchors:pts}).select().single(); if(r2.error){alert(r2.error.message);return;} CO.sops.push(r2.data); }
+  CO.openOp=null; CO.draft=null; CO.anchCfg=null; CO.draw();
+};
+/* --- Ром-аддон: материал и работа (config='rom') --- */
+CO.addRomBom=async function(){ var eid=Number(byId('coRomEl').value); if(!eid||!CO.styleId)return;
+  var r=await sb.from('style_bom').insert({style_id:CO.styleId,element_id:eid,config:'rom',qty_rule:{type:'linear_m',kw:1,kh:2},sort_order:CO.bom.length+1}).select().single();
+  if(r.error)alert(r.error.message.indexOf('duplicate')>-1?'Этот элемент уже в ром-аддоне':r.error.message); else{CO.bom.push(r.data); CO.draw();} };
+CO.addRomOp=async function(){ var oid=Number(byId('coRomOp').value); if(!oid||!CO.styleId)return;
+  if(CO.sops.some(function(x){return x.style_id===CO.styleId&&x.op_id===oid&&x.config==='rom';})){ alert('Эта работа уже в ром-аддоне'); return; }
+  var r=await sb.from('style_ops').insert({style_id:CO.styleId,op_id:oid,config:'rom',anchors:[{w:22,h:52,hours:0},{w:52,h:62,hours:0},{w:96,h:82,hours:0}],note:'часы рома — заполнить'}).select().single();
+  if(r.error)alert(r.error.message); else{CO.sops.push(r.data); CO.draw();} };
+
+/* --- Фаза C: генерация сетки style_params из себестоимости --- */
+CO.evalPoint=function(band){ return {w:(band.width_max==null?96:band.width_max), h:band.height_max}; };
+CO.calcBand=function(w,h){
+  var rows=CO.bom.filter(function(b){return b.style_id===CO.styleId&&b.config==='base';});
+  var byCode=CO.elsByCode();
+  rows.forEach(function(b){ var e=CO.els.find(function(x){return x.id===b.element_id;}); b._ecode=e?e.code:''; });
+  var hw=0;
+  rows.forEach(function(b){ var e=CO.els.find(function(x){return x.id===b.element_id;})||{};
+    if(e.is_active===false)return;
+    hw+=CO.qty(b.qty_rule,w,h,rows,byCode)*Number(e.price_cad||0); });
+  hw=Math.round(hw*10000)/10000;
+  var labH=0, labCad=0;
+  CO.ops.forEach(function(o){
+    var sr=CO.sop(o.id,'base'), so=sr.so;
+    if(!so||!(so.anchors||[]).length)return;
+    if(!CO.incEst&&so.note&&so.note.indexOf('ОЦЕНКА')>-1)return;
+    var hrs=CO.hours(so.anchors,w,h);
+    labH+=hrs; labCad+=hrs*Number(o.rate_cad_hr||0);
+  });
+  return { hw:hw, labH:Math.round(labH*100)/100, labCad:Math.round(labCad*100)/100 };
+};
+CO.generate=async function(){
+  CO.genErr=null;
+  var res=await Promise.all([
+    sb.from('style_params').select('*').eq('style_id',CO.styleId).order('roll_width').order('height_min').order('width_min'),
+    sb.from('app_settings').select('key,value')
+  ]);
+  if(res[0].error||res[1].error){ CO.genErr='Ошибка загрузки: '+(res[0].error||res[1].error).message; CO.draw(); return; }
+  var bands=res[0].data||[];
+  if(!bands.length){ CO.genErr='У стиля нет бэндов в style_params — сетку не из чего генерировать (структуру бэндов заводим отдельно).'; CO.draw(); return; }
+  var s={}; (res[1].data||[]).forEach(function(x){ s[x.key]=x.value; });
+  var linRate=Number(s.lining_rate_cad_per_yd), labRate=Number(s.labour_rate_cad_per_hr),
+      markup=Number(s.retail_markup), overhead=Number(s.overhead_pct);
+  var rate=CO.refRate||74.95;
+  var r2=function(n){return Math.round(n*100)/100;};
+  var lf=function(b,labCad,hw){ return r2((Number(b.fabric_yd)*rate+Number(b.lining_yd)*linRate+labCad+hw)*(1+overhead)*markup+Number(b.shipping_cad)); };
+  CO.gen={rows:bands.map(function(b){
+    var p=CO.evalPoint(b), c=CO.calcBand(p.w,p.h);
+    var oldLabCad=(b.labour_cad!=null)?Number(b.labour_cad):Number(b.labour_hours)*labRate;
+    var oldLF=lf(b,oldLabCad,Number(b.hardware_pkg_cad)), newLF=lf(b,c.labCad,c.hw);
+    return { id:b.id, roll:b.roll_width, hb:b.height_band, wb:b.width_band,
+      oldLab:Number(b.labour_hours), newLab:c.labH, dLab:r2(c.labH-Number(b.labour_hours)),
+      oldHw:Number(b.hardware_pkg_cad), newHw:c.hw, dHw:r2(c.hw-Number(b.hardware_pkg_cad)),
+      newLabCad:c.labCad, oldLF:oldLF, newLF:newLF, dLF:r2(newLF-oldLF) };
+  })};
+  CO.draw();
+};
+CO.writeGrid=async function(roll){
+  if(!CO.gen)return;
+  var list=CO.gen.rows.filter(function(g){return g.roll===roll;});
+  if(!list.length)return;
+  if(!confirm('Записать '+list.length+' бэндов рулона '+roll+'″ в style_params?\nМеняются только labour_hours / labour_cad / hardware_pkg_cad.'))return;
+  var errs=[];
+  for(var i=0;i<list.length;i++){
+    var g=list[i];
+    var r=await sb.from('style_params').update({labour_hours:g.newLab,labour_cad:g.newLabCad,hardware_pkg_cad:g.newHw,updated_at:new Date().toISOString()}).eq('id',g.id);
+    if(r.error)errs.push(g.hb+'×'+g.wb+': '+r.error.message);
+  }
+  try{
+    var actor=localStorage.getItem('intake_actor')||'hub';
+    await sb.from('event_log').insert({actor:actor,action:'cost_grid_write',entity:'style_params',
+      entity_id:'style '+CO.styleId+' roll '+roll,
+      before:{bands:list.map(function(g){return [g.id,g.oldLab,g.oldHw];})},
+      after:{bands:list.map(function(g){return [g.id,g.newLab,g.newLabCad,g.newHw];}),incEst:CO.incEst}});
+  }catch(e){}
+  if(errs.length)alert('Ошибки записи ('+errs.length+'):\n'+errs.slice(0,8).join('\n'));
+  else if(typeof dbStatus==='function')dbStatus('ok','✓ сетка '+roll+'″ записана ('+list.length+' бэндов)');
+  CO.gen=null;
+  CO.generate();
+};
+
+/* --- Вкладка --- */
+if(typeof showView==='function'){
+  var _sv=window.showView;
+  window.showView=function(v){
+    _sv(v);
+    var s=byId('view-cost'); if(s)s.classList.toggle('hidden',v!=='cost');
+    var t=byId('tab-cost'); if(t)t.className=(v==='cost'?'primary':'');
+    var s2=byId('view-stylecalc'); if(s2)s2.classList.toggle('hidden',v!=='stylecalc');
+    var t2=byId('tab-stylecalc'); if(t2)t2.className=(v==='stylecalc'?'primary':'');
+    if(v==='cost')CO.render('cost');
+    if(v==='stylecalc')CO.render('stylecalc');
+  };
+}
+window.CO=CO;
+})();
+</script>
+<script>
+/* ===== DECO TRIMS TAB «Тримы» (2026-07-10) =====
+   Цены деко-тримов CAD/ярд (deco_trims.price_cad_yd) — аналог вкладки «Ткани».
+   Решение N: цена трима — свойство трима, а не элемента себестоимости. */
+(function(){
+var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function byId(id){return document.getElementById(id);}
+var DT={rows:[]};
+DT.render=async function(){
+  var body=byId('decoTrimsBody'); if(!body)return;
+  if(!window.sb){ body.innerHTML='<p class="sub">Сначала войди в базу (вкладка входа).</p>'; return; }
+  var res=await Promise.all([
+    sb.from('deco_trims').select('*').order('sort_order').order('code'),
+    sb.from('trim_colors').select('trim_id,color_name,swatch_url,status').order('sort_order')
+  ]);
+  if(res[0].error){ body.innerHTML='<p class="sub">Ошибка: '+esc(res[0].error.message)+'</p>'; return; }
+  DT.rows=(res[0].data||[]).filter(function(t){return !t.is_deleted;});
+  DT.colors={}; ((res[1]&&res[1].data)||[]).forEach(function(c){ (DT.colors[c.trim_id]=DT.colors[c.trim_id]||[]).push(c); });
+  DT.draw();
+};
+/* превью-палетка цветов трима (из trim_colors, как в «Свотчах тримов») */
+DT.palette=function(t){
+  var cs=(DT.colors&&DT.colors[t.id])||[];
+  if(!cs.length)return '<span class="conote">цветов нет — заведи в «Свотчах тримов»</span>';
+  var h='<div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:4px">';
+  cs.slice(0,14).forEach(function(c){
+    if(c.swatch_url)h+='<img src="'+esc(c.swatch_url)+'" title="'+esc(c.color_name||'')+'" style="width:52px;height:52px;object-fit:cover;border-radius:7px;border:1px solid var(--line2)" loading="lazy">';
+    else h+='<span title="'+esc(c.color_name||'')+' — нет фото" style="width:52px;height:52px;border-radius:7px;background:#eee;border:1px dashed #ccc;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#aaa">?</span>';
+  });
+  if(cs.length>14)h+='<span class="conote">+'+(cs.length-14)+'</span>';
+  h+='<span class="conote" style="margin-left:4px">'+cs.length+' цв.</span></div>';
+  return h;
+};
+DT.draw=function(){
+  var h='<div class="cocard" style="max-width:1050px">';
+  h+='<table class="cotable" style="margin-top:2px"><thead><tr><th style="width:90px">Код</th><th style="min-width:220px">Название · примечание</th><th>Палетка</th><th style="text-align:right;width:130px">Цена за ярд <span style="font-weight:normal">CAD</span></th></tr></thead><tbody>';
+  DT.rows.forEach(function(t){
+    var p0=(t.price_cad_yd==null||Number(t.price_cad_yd)===0);
+    h+='<tr><td><input value="'+esc(t.code||'')+'" style="width:70px;font-weight:600" onchange="DT.set('+t.id+',\'code\',this.value)"></td>'
+      +'<td><input value="'+esc(t.name||'')+'" onchange="DT.set('+t.id+',\'name\',this.value)">'
+      +'<div class="conote"><input value="'+esc(t.note||'')+'" placeholder="примечание…" onchange="DT.set('+t.id+',\'note\',this.value)"></div></td>'
+      +'<td>'+DT.palette(t)+'</td>'
+      +'<td style="text-align:right"'+(p0?' title="цена не заполнена"':'')+'><input type="number" step="0.01" class="num" style="font-weight:700;font-size:14px;'+(p0?'background:#fdf0ec;border:1px solid #e8c7bc;border-radius:6px':'')+'" value="'+(t.price_cad_yd==null?'':t.price_cad_yd)+'" onchange="DT.set('+t.id+',\'price_cad_yd\',this.value)"></td></tr>';
+  });
+  h+='</tbody></table>';
+  h+='<div style="display:flex;gap:8px;margin-top:10px"><input id="dtNew" placeholder="Название нового трима" style="border:1px solid var(--line2);border-radius:6px;padding:4px 6px;font:inherit;width:240px"><button class="mini" onclick="DT.add()">+ трим</button></div>';
+  h+='<p class="sub" style="margin:8px 0 0">Розовая цена — не заполнена: ром-аддер с таким тримом посчитает только работу, без материала.</p></div>';
+  byId('decoTrimsBody').innerHTML=h;
+};
+DT.set=async function(id,k,v){
+  var patch={}; patch[k]=(k==='price_cad_yd')?(v===''?null:Number(v)):v;
+  var r=await sb.from('deco_trims').update(patch).eq('id',id);
+  if(r.error)alert(r.error.message); else{ var t=DT.rows.find(function(x){return x.id===id;}); if(t)t[k]=patch[k]; }
+  DT.draw();
+};
+DT.add=async function(){
+  var nm=(byId('dtNew').value||'').trim(); if(!nm)return;
+  var code=nm.split(/\s+/)[0].toUpperCase().slice(0,10);
+  var r=await sb.from('deco_trims').insert({code:code,name:nm,sort_order:DT.rows.length+1}).select().single();
+  if(r.error)alert(r.error.message); else{ DT.rows.push(r.data); DT.draw(); }
+};
+if(typeof showView==='function'){
+  var _sv=window.showView;
+  window.showView=function(v){
+    _sv(v);
+    var s=byId('view-decotrims'); if(s)s.classList.toggle('hidden',v!=='decotrims');
+    var t=byId('tab-decotrims'); if(t)t.className=(v==='decotrims'?'primary':'');
+    if(v==='decotrims')DT.render();
+  };
+}
+window.DT=DT;
+})();
+</script>
+<script>
+/* ===== BANDS TAB «Бэнды» (2026-07-10) =====
+   Эталонные размерные бэнды (диапазоны, дюймы) по каналам × стилям: channel_bands.
+   Канал Etsy — один набор на оба магазина (решение N). max_in=null → «и больше». */
+(function(){
+var esc=window.esc||function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
+function byId(id){return document.getElementById(id);}
+var CB={rows:[],styles:[],ch:'etsy',styleId:null};
+CB.CHANNELS=[{code:'etsy',name:'Etsy (оба магазина)'},{code:'amazon',name:'Amazon Handmade'},{code:'shopify',name:'Shopify · сайт'}];
+CB.render=async function(){
+  var body=byId('bandsBody'); if(!body)return;
+  if(!window.sb){ body.innerHTML='<p class="sub">Сначала войди в базу (вкладка входа).</p>'; return; }
+  var res=await Promise.all([
+    sb.from('channel_bands').select('*').order('dim').order('sort_order').order('min_in'),
+    sb.from('styles').select('id,code,name').order('sort_order')
+  ]);
+  if(res[0].error||res[1].error){ body.innerHTML='<p class="sub">Ошибка: '+esc((res[0].error||res[1].error).message)+'</p>'; return; }
+  CB.rows=res[0].data||[]; CB.styles=res[1].data||[];
+  if(CB.styleId==null&&CB.styles.length)CB.styleId=CB.styles[0].id;
+  CB.draw();
+};
+CB.list=function(dim){
+  return CB.rows.filter(function(r){return r.channel===CB.ch&&r.style_id===CB.styleId&&r.dim===dim;})
+    .sort(function(a,b){return a.min_in-b.min_in;});
+};
+/* проверка целостности бэндов: щели и наложения */
+CB.gaps=function(list){
+  var msg=[];
+  for(var i=1;i<list.length;i++){
+    var prev=list[i-1], cur=list[i];
+    if(prev.max_in==null){ msg.push('«'+CB.label(prev)+'» открыт («и больше»), но после него есть ещё бэнд'); continue; }
+    if(cur.min_in>prev.max_in+1)msg.push('щель между '+prev.max_in+'″ и '+cur.min_in+'″');
+    if(cur.min_in<=prev.max_in)msg.push('наложение: «'+CB.label(prev)+'» и «'+CB.label(cur)+'»');
+  }
+  return msg;
+};
+CB.label=function(r){ return r.max_in==null?(r.min_in+'″+'):(r.min_in+'–'+r.max_in+'″'); };
+CB.draw=function(){
+  var h='';
+  /* каналы */
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px">';
+  CB.CHANNELS.forEach(function(c){
+    h+='<button class="mini" style="font-size:13.5px;padding:7px 16px;border-radius:10px;'+(CB.ch===c.code?'background:#2f2a24;color:#fff;border-color:#2f2a24':'background:#fff')+'" onclick="CB.setCh(\''+c.code+'\')">'+esc(c.name)+'</button>';
+  });
+  h+='</div>';
+  /* стили */
+  h+='<div class="stylecards" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">';
+  CB.styles.forEach(function(s){
+    var n=CB.rows.filter(function(r){return r.channel===CB.ch&&r.style_id===s.id;}).length;
+    h+='<div class="stylecard'+(CB.styleId===s.id?' on':'')+'" onclick="CB.pick('+s.id+')">'
+      +'<div class="sc-name" style="font-size:14px">'+esc(s.name||s.code)+'</div>'
+      +(n?'<div class="sc-meta"><span>'+n+' бэндов</span></div>':'<div class="sc-empty">бэнды не заведены</div>')+'</div>';
+  });
+  h+='</div>';
+  if(CB.styleId==null){ byId('bandsBody').innerHTML=h; return; }
+  var chName=(CB.CHANNELS.find(function(c){return c.code===CB.ch;})||{}).name||CB.ch;
+  h+='<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">';
+  ['width','height'].forEach(function(dim){
+    var list=CB.list(dim), gaps=CB.gaps(list);
+    h+='<div class="cocard" style="flex:1;min-width:380px;max-width:560px"><h2>'+(dim==='width'?'Бэнды ширины':'Бэнды высоты')+' <span class="sub" style="font-weight:normal;font-size:12px">'+esc(chName)+' · дюймы</span></h2>';
+    h+='<table class="cotable" style="margin-top:6px"><thead><tr><th style="width:90px">От ″</th><th style="width:90px">До ″ <span style="font-weight:normal">(пусто = и больше)</span></th><th>Бэнд</th><th style="width:32px"></th></tr></thead><tbody>';
+    list.forEach(function(r){
+      h+='<tr><td><input type="number" class="num" style="width:70px" value="'+r.min_in+'" onchange="CB.set('+r.id+',\'min_in\',this.value)"></td>'
+        +'<td><input type="number" class="num" style="width:70px" value="'+(r.max_in==null?'':r.max_in)+'" placeholder="∞" onchange="CB.set('+r.id+',\'max_in\',this.value)"></td>'
+        +'<td><b>'+CB.label(r)+'</b></td>'
+        +'<td><button class="mini del" onclick="CB.del('+r.id+')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table>';
+    if(gaps.length)h+='<p class="sub" style="color:#a33;margin:6px 0 0">⚠ '+gaps.map(esc).join(' · ')+'</p>';
+    h+='<div style="display:flex;gap:8px;margin-top:10px"><button class="mini" onclick="CB.add(\''+dim+'\')">+ бэнд</button></div>';
+    /* «скопировать из канала» убрано из UI по решению N 2026-07-10; функция CB.copyFrom сохранена в коде */
+    h+='</div>';
+  });
+  h+='</div>';
+  h+='<p class="sub" style="margin:8px 0 0">Эти бэнды — эталон для листингов канала: вариации размеров в «Новом листинге» будут строиться по ним. Красные предупреждения показывают щели/наложения между бэндами.</p>';
+  byId('bandsBody').innerHTML=h;
+};
+CB.setCh=function(c){ CB.ch=c; CB.draw(); };
+CB.pick=function(id){ CB.styleId=Number(id); CB.draw(); };
+CB.set=async function(id,k,v){
+  var val=(v===''?null:Number(v));
+  if(k==='min_in'&&val==null){ alert('«От» не может быть пустым'); CB.draw(); return; }
+  var patch={updated_at:new Date().toISOString()}; patch[k]=val;
+  var r=await sb.from('channel_bands').update(patch).eq('id',id);
+  if(r.error)alert(r.error.message); else{ var row=CB.rows.find(function(x){return x.id===id;}); if(row)row[k]=val; }
+  CB.draw();
+};
+CB.add=async function(dim){
+  var list=CB.list(dim), last=list[list.length-1];
+  var min=last?(last.max_in!=null?last.max_in+1:last.min_in+10):0;
+  var r=await sb.from('channel_bands').insert({channel:CB.ch,style_id:CB.styleId,dim:dim,min_in:min,max_in:min+9,sort_order:list.length+1}).select().single();
+  if(r.error)alert(r.error.message); else CB.rows.push(r.data);
+  CB.draw();
+};
+CB.del=async function(id){ if(!confirm('Удалить бэнд?'))return;
+  var r=await sb.from('channel_bands').delete().eq('id',id);
+  if(r.error)alert(r.error.message); else CB.rows=CB.rows.filter(function(x){return x.id!==id;});
+  CB.draw();
+};
+CB.copyFrom=async function(dim){
+  var src=(byId('cbCopy_'+dim)||{}).value; if(!src)return;
+  var srcRows=CB.rows.filter(function(r){return r.channel===src&&r.style_id===CB.styleId&&r.dim===dim;});
+  if(!srcRows.length){ alert('В канале-источнике нет бэндов'); return; }
+  if(!confirm('Заменить бэнды '+(dim==='width'?'ширины':'высоты')+' канала на копию из «'+src+'» ('+srcRows.length+' шт.)?'))return;
+  var del=await sb.from('channel_bands').delete().eq('channel',CB.ch).eq('style_id',CB.styleId).eq('dim',dim);
+  if(del.error){ alert(del.error.message); return; }
+  var ins=await sb.from('channel_bands').insert(srcRows.map(function(r,i){return {channel:CB.ch,style_id:CB.styleId,dim:dim,min_in:r.min_in,max_in:r.max_in,sort_order:i+1};})).select();
+  if(ins.error){ alert(ins.error.message); return; }
+  CB.rows=CB.rows.filter(function(r){return !(r.channel===CB.ch&&r.style_id===CB.styleId&&r.dim===dim);}).concat(ins.data||[]);
+  CB.draw();
+};
+if(typeof showView==='function'){
+  var _sv=window.showView;
+  window.showView=function(v){
+    _sv(v);
+    var s=byId('view-bands'); if(s)s.classList.toggle('hidden',v!=='bands');
+    var t=byId('tab-bands'); if(t)t.className=(v==='bands'?'primary':'');
+    if(v==='bands')CB.render();
+  };
+}
+window.CB=CB;
+})();
+</script>
 <script>
 /* ===== MEDIA TAB «Медиа» + полный бэкап (Фаза 5 · 2026-07-10) =====
    Библиотека Storage (media + swatches) с привязками через таблицу media;
@@ -2766,7 +3711,8 @@ var BUCKETS=['media','swatches'];
 /* полный перечень таблиц хаба для бэкапа */
 var TABLES=['styles','trims','deco_trims','fabrics','fabric_colors','fabric_palettes','trim_colors','trim_palettes',
   'pricing','listings','sku_registry','channel_match','aspect_price_points','snapshots','event_log','app_allowlist',
-  'style_params','listing_templates','masters','media','app_settings'];
+  'style_params','listing_templates','masters','media','app_settings',
+  'cost_ops','cost_elements','style_bom','style_ops','channel_bands'];
 
 /* --- рекурсивный обход бакета --- */
 MD.walk=async function(bucket,prefix){
