@@ -258,7 +258,7 @@
         <thead><tr>
           <th style="width:11%;text-align:left">Код</th>
           <th style="width:40%;text-align:left">Описание каймы / конструкция</th>
-          <th style="width:13%;text-align:left">Цена трима (USD)</th>
+          <th style="width:13%;text-align:left">Цена трима (CAD)</th>
           <th style="width:20%;text-align:left">Эскиз / фото</th>
           <th style="width:16%"></th>
         </tr></thead>
@@ -396,7 +396,7 @@ let rid = 0;
 
 function buildHead(){
   let h = `<th class="rownum">#</th><th class="fab">Ткань</th><th class="base">Код</th>`
-    + `<th class="base">Цена за ярд<span class="h2">USD</span></th>`
+    + `<th class="base">Цена за ярд<span class="h2">CAD</span></th>`
     + `<th class="base">Ширина рулона<span class="h2">дюймы</span></th>`;
   priceTypes().forEach(t=>{ h += `<th>${escapeHtml(t.name)}<span class="h2">ставка $/час + коммент</span></th>`; });
   h += `<th class="rownum"></th>`;
@@ -454,7 +454,7 @@ function flattenPrice(){
   const out = [];
   collect().forEach(r=> priceTypes().forEach(t=>{
     const c = r.types[t.key] || {};
-    out.push({ "Ткань":r.fabric, "Цена за ярд (USD)":r.price, "Ширина рулона (дюйм)":r.width,
+    out.push({ "Ткань":r.fabric, "Цена за ярд (CAD)":r.price, "Ширина рулона (дюйм)":r.width,
       "Тип шторы":t.name, "Ставка ($/час)":c.rate, "Комментарий":c.comment||"" });
   }));
   return out;
@@ -894,7 +894,7 @@ function _xSheet(name, rows){
   return out;
 }
 function buildWorkbookXML(){
-  var trims = TRIMS.map(function(t){return {"Код":t.code,"Описание":t.desc||"","Цена трима (USD)":t.price||"","Фото":t.preview?"есть":""};});
+  var trims = TRIMS.map(function(t){return {"Код":t.code,"Описание":t.desc||"","Цена трима (CAD)":t.price||"","Фото":t.preview?"есть":""};});
   var fabs = BOARDFABS.map(function(f){return {"Ткань":f,"Статус":(FABMETA[f]&&FABMETA[f].disc)?"discontinued":"active","Замена":(FABMETA[f]&&FABMETA[f].sub)||"","Листингов":LISTINGS.filter(function(l){return (LASSIGN[l.id]||"")===f;}).length};});
   var sheets=[["Стили",flattenStyles()],["Цены",flattenPrice()],["Листинги",flattenListings()],["Тримы",trims],["Ткани",fabs]];
   var xml='<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
