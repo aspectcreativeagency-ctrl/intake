@@ -435,7 +435,7 @@
     <div class="wrap">
       <table id="fabTable"><thead><tr>
         <th class="rownum">#</th><th>Ткань</th><th>Код</th><th>Цена за ярд<span class="h2">CAD</span></th>
-        <th>Ширина<span class="h2">дюймы</span></th><th style="min-width:280px">Описание ткани</th><th>Источник</th><th>Заметка</th>
+        <th>Ширина<span class="h2">дюймы</span></th><th title="Рапорт рисунка; пусто = однотонная. +1 рапорт на каждый отрез в расчёте цены">Рапорт<span class="h2">дюймы</span></th><th style="min-width:280px">Описание ткани</th><th>Источник</th><th>Заметка</th>
       </tr></thead><tbody id="fabBody"></tbody></table>
     </div>
   </section>
@@ -519,7 +519,7 @@
 
   <section id="view-masters" class="hidden">
     <h1>Эталоны</h1>
-    <p class="sub">Мастер-листинг на стиль: тексты по 4 каналам, эталонный фотосет, живая сетка цен (движок из базы), статус <b>черновик → эталон</b>. Утверждённый эталон станет шаблоном конструктора «Новый листинг».</p>
+    <p class="sub">Эталон = <b>правила стиля</b>, без привязки к ткани: тексты-шаблоны по 4 каналам с плейсхолдерами {fabric}/{color}/{price}, эталонный фотосет, утверждённый диапазон бэндов, статус <b>черновик → эталон</b>. Конкретная ткань (её цена, рулон 54/120, рапорт) подключается в «Новом листинге»: эталон × ткань = листинг. Ткань на этой вкладке — только для предпросмотра чисел сетки.</p>
     <div id="maChips" style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"></div>
     <div id="maCard" class="note">Выбери стиль…</div>
   </section>
@@ -1525,13 +1525,14 @@ function renderFabrics(){ var host=document.getElementById('fabBody'); if(!host)
   var lastL=null;
   host.innerHTML=rows.map(function(f,i){ var note=f.price_note||'';
     var L=fabLetter(f.name), hdr='';
-    if(L!==lastL){ lastL=L; hdr='<tr class="fabletter" id="fablet-'+(L==='#'?'num':L)+'"><td colspan="8">'+L+'<span class="lcnt">'+_counts[L]+' ткан'+(_counts[L]===1?'ь':(_counts[L]<5?'и':'ей'))+'</span></td></tr>'; }
+    if(L!==lastL){ lastL=L; hdr='<tr class="fabletter" id="fablet-'+(L==='#'?'num':L)+'"><td colspan="9">'+L+'<span class="lcnt">'+_counts[L]+' ткан'+(_counts[L]===1?'ь':(_counts[L]<5?'и':'ей'))+'</span></td></tr>'; }
     return hdr+'<tr data-fid="'+f.id+'">'
       +'<td class="rownum">'+(i+1)+'</td>'
       +'<td><b>'+escapeHtml(f.name)+'</b>'+(f.is_discontinued?' <span class="srcb none">discontinued</span>':'')+'</td>'
       +'<td><input type="text" data-ff="code" value="'+escapeHtml(f.code||'')+'" maxlength="6" style="width:60px;text-transform:uppercase"></td>'
       +'<td><input class="num" type="number" min="0" step="0.01" data-ff="price" value="'+(f.base_price==null?'':f.base_price)+'" style="width:86px"></td>'
       +'<td><input class="num" type="number" min="1" step="1" data-ff="width" value="'+(f.roll_width||54)+'" style="width:60px"></td>'
+      +'<td><input class="num" type="number" min="0" step="0.25" data-ff="repeat" title="Рапорт рисунка, дюймы; пусто = однотонная. +1 рапорт/отрез в расчёте цены" placeholder="—" value="'+(f.repeat_in==null||Number(f.repeat_in)===0?'':f.repeat_in)+'" style="width:58px"></td>'
       +'<td><textarea class="fabdesc" data-ff="description" placeholder="из чего сделана, характеристики… (для листингов)">'+escapeHtml(f.description||'')+'</textarea></td>'
       +'<td>'+srcBadge(f.price_source,note)+'</td>'
       +'<td class="note" title="'+escapeHtml(note)+'">'+escapeHtml(note.length>90?note.slice(0,90)+'…':note)+'</td>'
@@ -1553,8 +1554,9 @@ async function fabCommit(){ if(!sb) return; var ids=Object.keys(dirtyFabRows);
       var rec=null; for(var j=0;j<FABREC.length;j++){ if(FABREC[j].id===fid){ rec=FABREC[j]; break; } } if(!rec) continue;
       var pv=tr.querySelector('[data-ff=price]').value, wv=tr.querySelector('[data-ff=width]').value, cv=tr.querySelector('[data-ff=code]').value.trim().toUpperCase();
       var dEl=tr.querySelector('[data-ff=description]'); var dv=dEl?dEl.value.trim():null;
+      var rEl=tr.querySelector('[data-ff=repeat]'); var rv=rEl?rEl.value:'';
       var newPrice=(pv===''?null:Number(pv)); var oldPrice=(rec.base_price==null?null:Number(rec.base_price));
-      var upd={ base_price:newPrice, roll_width:(Number(wv)||54), code:(cv||null), description:(dv||null) };
+      var upd={ base_price:newPrice, roll_width:(Number(wv)||54), code:(cv||null), description:(dv||null), repeat_in:(rv===''?null:Number(rv)) };
       if(newPrice!==oldPrice){ upd.price_source=(newPrice==null?null:'manual'); upd.price_updated_at=new Date().toISOString();
         if(newPrice!=null&&rec.price_source==='estimated') upd.price_note='Проверено вручную '+new Date().toLocaleDateString('ru-RU')+' (была оценка '+oldPrice+').'; }
       var r=await sb.from('fabrics').update(upd).eq('id',fid); if(r.error) throw r.error;
@@ -1637,12 +1639,16 @@ async function enter(session){ if(_entered)return; _entered=true; dbSession=sess
    Все цены CAD (решение N 2026-07-10: база хранит CAD, USD — при экспорте по фикс-курсу из app_settings). */
 var PriceEngine=(function(){
   var r2=function(n){ return Math.round(n*100)/100; };
-  /* b — строка style_params; rate — цена ткани CAD/ярд; cfg — {linRate,labRate,markup,overhead} */
+  /* b — строка style_params; rate — цена ткани CAD/ярд; cfg — {linRate,labRate,markup,overhead,repeatYd}
+     repeatYd — рапорт ткани в ярдах (0/нет = однотонная). Правило N 2026-08-02: +1 рапорт на каждый отрез;
+     отрезов 1, либо 2 при швах (рулон 54″ и обе стороны бэнда >52″). Подкладка без рапорта. */
   function priceBand(b,rate,cfg){
     /* labour_cad (Фаза C, Σ часы_i × ставка_i из cost_ops) приоритетнее; null → старый путь labour_hours × labRate */
     var labour = (b.labour_cad!=null && b.labour_cad!=='') ? Number(b.labour_cad)
                : Number(b.labour_hours)*cfg.labRate;
-    var cogs = Number(b.fabric_yd)*rate + Number(b.lining_yd)*cfg.linRate
+    var cuts = (Number(b.roll_width)===54 && Number(b.width_min)>52 && Number(b.height_min)>52) ? 2 : 1;
+    var fabYd = Number(b.fabric_yd) + (Number(cfg.repeatYd)||0)*cuts;
+    var cogs = fabYd*rate + Number(b.lining_yd)*cfg.linRate
              + labour + Number(b.hardware_pkg_cad);
     var lf = r2(cogs*(1+cfg.overhead)*cfg.markup + Number(b.shipping_cad));
     var bo = r2(lf + Number(b.blackout_adder_cad));
@@ -1677,9 +1683,12 @@ var PriceEngine=(function(){
       return { bands:res[0].data||[], cfg:cfg };
     });
   }
-  /* Удобный конец-в-конец вызов: сетка цен стиля × рулона × цены ткани */
-  function gridFromDB(sbClient, styleId, roll, fabricRate){
-    return load(sbClient, styleId, roll).then(function(x){ return grid(x.bands, fabricRate, x.cfg); });
+  /* Удобный конец-в-конец вызов: сетка цен стиля × рулона × цены ткани.
+     repeatIn (опц.) — рапорт ткани в ДЮЙМАХ из fabrics.repeat_in; переводится в ярды. */
+  function gridFromDB(sbClient, styleId, roll, fabricRate, repeatIn){
+    return load(sbClient, styleId, roll).then(function(x){
+      x.cfg.repeatYd=(Number(repeatIn)||0)/36;
+      return grid(x.bands, fabricRate, x.cfg); });
   }
   return { r2:r2, priceBand:priceBand, grid:grid, load:load, gridFromDB:gridFromDB };
 })();
@@ -2124,7 +2133,7 @@ MA.render=async function(){
   if(!window.sb){ card.innerHTML='<p class="sub">Сначала войди в базу.</p>'; return; }
   var res=await Promise.all([
     sb.from('styles').select('id,code,name').order('sort_order'),
-    sb.from('fabrics').select('id,name,base_price,roll_width,description').eq('is_deleted',false).order('name'),
+    sb.from('fabrics').select('id,name,base_price,roll_width,repeat_in,description').eq('is_deleted',false).order('name'),
     sb.from('masters').select('*')
   ]);
   for(var i=0;i<3;i++){ if(res[i].error){ card.innerHTML='<p class="sub">Ошибка: '+esc(res[i].error.message)+'</p>'; return; } }
@@ -2165,13 +2174,14 @@ MA.card=function(){
     ? '<button class="mini del" onclick="MA.setStatus(\'draft\')">↩ В черновик</button>'
     : '<button class="mini on" onclick="MA.setStatus(\'master\')">✅ Утвердить эталон</button>');
   h+='</div>';
-  /* ткань + рулон для живой сетки */
-  h+='<div class="bar" style="margin-top:10px"><label>Эталонная ткань:</label> <select id="maFab" onchange="MA.setFab(this.value)">';
+  /* ткань + рулон — ТОЛЬКО для предпросмотра сетки. Эталон = правила стиля, ткани в нём нет (решение N 2026-08-02):
+     тексты — шаблоны с плейсхолдерами {fabric}/{color}/{price}; конкретная ткань выбирается в «Новом листинге». */
+  h+='<div class="bar" style="margin-top:10px"><label>Ткань для предпросмотра цен:</label> <select id="maFab" onchange="MA.setFab(this.value)">';
   h+='<option value="">—</option>';
-  MA.fabrics.forEach(function(x){ h+='<option value="'+x.id+'"'+(m.fabric_id===x.id?' selected':'')+'>'+esc(x.name)+' ('+(x.base_price||'?')+' CAD/ярд)</option>'; });
+  MA.fabrics.forEach(function(x){ h+='<option value="'+x.id+'"'+(m.fabric_id===x.id?' selected':'')+'>'+esc(x.name)+' ('+(x.base_price||'?')+' CAD/ярд · '+(x.roll_width||'?')+'″'+(x.repeat_in?' · рапорт '+x.repeat_in+'″':'')+')</option>'; });
   h+='</select> <label>Рулон:</label> <select id="maRoll" onchange="MA.setRoll(this.value)">';
   MA.rolls.forEach(function(r){ h+='<option value="'+r+'"'+(r===MA.roll?' selected':'')+'>'+r+'″</option>'; });
-  h+='</select></div>';
+  h+='</select> <span class="sub" style="font-size:11px">в эталон не входит — только показ чисел; тексты пиши плейсхолдерами {fabric}, {color}, {price}</span></div>';
   /* каналы */
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 8px">';
   CHANNELS.forEach(function(c){ h+='<button class="mini'+(MA.ch===c[0]?' on':'')+'" onclick="MA.setCh(\''+c[0]+'\')">'+esc(c[1])+'</button>'; });
@@ -2179,7 +2189,12 @@ MA.card=function(){
   /* фотосет */
   h+='<h2 style="margin-top:16px">Эталонный фотосет ('+(m.photoset||[]).length+')</h2><div id="maPhotos"></div>';
   /* сетка цен */
-  h+='<h2 style="margin-top:16px">Живая сетка цен · CAD'+(f?' · '+esc(f.name)+' '+f.base_price+'/ярд · рулон '+MA.roll+'″':'')+'</h2><div id="maGrid" class="note">'+(f?'загрузка…':'выбери эталонную ткань')+'</div>';
+  h+='<h2 style="margin-top:16px">Живая сетка цен (предпросмотр) · CAD'+(f?' · '+esc(f.name)+' '+f.base_price+'/ярд · рулон '+MA.roll+'″'+(f.repeat_in?' · +рапорт '+f.repeat_in+'″/отрез':''):'')+'</h2><div id="maGrid" class="note">'+(f?'загрузка…':'выбери ткань для предпросмотра')+'</div>';
+  /* линт: имя конкретной ткани в текстах эталона — нарушение шаблонности */
+  var leak=[]; if(true){ var names=MA.fabrics.map(function(x){return x.name;}).filter(Boolean);
+    CHANNELS.forEach(function(c){ var tx=JSON.stringify((m.texts||{})[c[0]]||{});
+      names.forEach(function(nm){ if(nm && nm.length>2 && tx.toLowerCase().indexOf(nm.toLowerCase())>=0 && leak.indexOf(CHNAME[c[0]]+': '+nm)<0) leak.push(CHNAME[c[0]]+': '+nm); }); }); }
+  if(leak.length)h+='<div class="note" style="border-left:3px solid #c77;padding-left:8px;margin-top:8px">⚠ Эталон — шаблон стиля: в текстах найдено имя конкретной ткани (' + esc(leak.join(' · ')) + '). Замени на {fabric}.</div>';
   h+='</div>';
   byId('maCard').innerHTML=h;
   MA.fields(); MA.photos(); if(f)MA.renderGrid();
@@ -2397,7 +2412,7 @@ MA.photos=function(){ MA.photoPanel('maPhotos', MA.m.photoset, 'MA'); };
 MA.renderGrid=async function(){
   var f=MA.fabric(), el=byId('maGrid'); if(!f||!el)return;
   try{
-    var g=await PriceEngine.gridFromDB(sb, MA.styleId, MA.roll, Number(f.base_price));
+    var g=await PriceEngine.gridFromDB(sb, MA.styleId, MA.roll, Number(f.base_price), f.repeat_in);
     MA.grid=g;
     var hbs=Object.keys(g); if(!hbs.length){ el.innerHTML='нет бэндов для стиля/рулона в style_params'; return; }
     var h='';
@@ -2563,7 +2578,7 @@ MA.previewHtml=function(ch,t,ps,grid){
     h+='</tbody></table></div>';
     if(st)h+='<p class="sub">Диапазон по '+st.n+' ценам утверждённых бэндов: '+st.min.toFixed(2)+' – '+st.max.toFixed(2)+' CAD</p>';
   }else{
-    h+='<p class="sub">Сетка цен не загружена — выбери эталонную ткань на карточке.</p>';
+    h+='<p class="sub">Сетка цен не загружена — выбери ткань для предпросмотра на карточке.</p>';
   }
   return h;
 };
@@ -2647,7 +2662,7 @@ NL.render=async function(){
   var res=await Promise.all([
     sb.from('masters').select('*'),
     sb.from('styles').select('id,code,name').order('sort_order'),
-    sb.from('fabrics').select('id,name,base_price,roll_width,description').eq('is_deleted',false).order('name'),
+    sb.from('fabrics').select('id,name,base_price,roll_width,repeat_in,description').eq('is_deleted',false).order('name'),
     sb.from('trims').select('id,code,description,price').order('code'),
     sb.from('listing_templates').select('*'),
     sb.from('app_settings').select('key,value'),
@@ -2780,7 +2795,7 @@ NL.build=async function(){
   var f=NL.fabrics.find(function(x){return x.id===NL.fabricId;});
   if(!NL.tpls.length){ body.innerHTML='<div class="note">Для стиля нет шаблонов в listing_templates — собери эталон в «Эталонах».</div>'; return; }
   if(!NL.texts)NL.texts=NL.buildTexts();
-  try{ NL.grid=await PriceEngine.gridFromDB(sb, NL.styleId, NL.roll, Number(f.base_price)); }
+  try{ NL.grid=await PriceEngine.gridFromDB(sb, NL.styleId, NL.roll, Number(f.base_price), f.repeat_in); }
   catch(e){ body.innerHTML='<div class="note">Движок цен: '+esc(e.message||e)+'</div>'; return; }
   var warn=[];
   if(m.status!=='master')warn.push('эталон стиля ещё черновик — утверди в «Эталонах»');
@@ -2793,7 +2808,7 @@ NL.build=async function(){
   if(warn.length)h+='<div class="note" style="border-left:4px solid #c8a03c;margin-bottom:10px">⚠ '+warn.map(esc).join(' · ')+'</div>';
   h+='<div class="lcard" style="padding:14px 16px">';
   h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">';
-  h+='<b style="font-size:16px">'+esc(f.name)+'</b><span class="sub">рулон '+NL.roll+'″ · '+esc(String(f.base_price))+' CAD/ярд'+(trim?' · ром '+esc(trim.code||'')+(romX&&romX.color?' ('+esc(romX.material)+' — '+esc(romX.color)+')':''):'')+' · цвета: '+NL.colors.length+'</span>';
+  h+='<b style="font-size:16px">'+esc(f.name)+'</b><span class="sub">рулон '+NL.roll+'″ · '+esc(String(f.base_price))+' CAD/ярд'+(f.repeat_in?' · рапорт '+f.repeat_in+'″ (+1/отрез в цене)':'')+(Number(NL.roll)===54?' · <b>54″: ширина >50″ — два боковых шва, дисклеймер в описании обязателен</b>':'')+(trim?' · ром '+esc(trim.code||'')+(romX&&romX.color?' ('+esc(romX.material)+' — '+esc(romX.color)+')':''):'')+' · цвета: '+NL.colors.length+'</span>';
   h+='<span style="flex:1"></span>';
   h+='<button class="mini" onclick="NL.preview()">👁 Preview</button>';
   h+='<button class="mini on" onclick="NL.save()">💾 Сохранить листинг (снапшот цен)</button>';
